@@ -16,6 +16,13 @@ pipeline {
         }
     }
 }
+stage('Push Image to Docker Hub') {
+            steps {
+                script {
+                    bat 'docker push nour0205/my_app:1.0'
+                }
+            }
+        }
 
 stage('Stop & Remove Existing Container') {
     steps {
