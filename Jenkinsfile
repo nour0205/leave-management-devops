@@ -10,28 +10,29 @@ pipeline {
 
 
         stage('Build Docker Image') {
-            steps {
-                script {
-                    sh 'docker build -t nour0205/my_app:1.0 .'
-                }
-            }
+    steps {
+        script {
+            bat 'docker build -t nour0205/my_app:1.0 .'
         }
+    }
+}
 
-        stage('Stop & Remove Existing Container') {
-            steps {
-                script {
-                    sh 'docker stop my_app || true'
-                    sh 'docker rm my_app || true'
-                }
-            }
+stage('Stop & Remove Existing Container') {
+    steps {
+        script {
+            bat 'docker stop my_app || exit 0'
+            bat 'docker rm my_app || exit 0'
         }
+    }
+}
 
-        stage('Run New Container') {
-            steps {
-                script {
-                    sh 'docker run -d -p 5001:3000 --name my_app nour0205/my_app:1.0'
-                }
-            }
+stage('Run New Container') {
+    steps {
+        script {
+            bat 'docker run -d -p 5001:3000 --name my_app nour0205/my_app:1.0'
         }
+    }
+}
+
     }
 }
