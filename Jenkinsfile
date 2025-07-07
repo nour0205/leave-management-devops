@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    
     stages {
        stage('Clone Repository') {
     steps {
@@ -26,24 +26,27 @@ stage('Push Image to Docker Hub') {
         }
     }
 }
+stage('Deploy with Docker Compose') {
+            steps {
+                script {
+                    // Stop and remove existing containers (docker-compose down)
+                    bat 'docker-compose down || exit 0'
 
+                    // Rebuild and start containers with docker-compose
+                    bat 'docker-compose up -d --build'
+                }
+            }
+        }
+    }
 
-stage('Stop & Remove Existing Container') {
-    steps {
-        script {
-            bat 'docker stop my_app || exit 0'
-            bat 'docker rm my_app || exit 0'
+post {
+        success {
+            echo "Deployment successful!"
+        }
+        failure {
+            echo " Deployment failed!"
         }
     }
 }
 
-stage('Run New Container') {
-    steps {
-        script {
-            bat 'docker run -d -p 5001:3000 --name my_app nour0205/my_app:1.0'
-        }
-    }
-}
-
-    }
-}
+   
