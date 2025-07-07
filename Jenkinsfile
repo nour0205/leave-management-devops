@@ -17,12 +17,16 @@ pipeline {
     }
 }
 stage('Push Image to Docker Hub') {
-            steps {
-                script {
-                    bat 'docker push nour0205/my_app:1.0'
-                }
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+            script {
+                bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
+                bat "docker push nour0205/my_app:1.0"
             }
         }
+    }
+}
+
 
 stage('Stop & Remove Existing Container') {
     steps {
