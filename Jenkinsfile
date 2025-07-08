@@ -1,5 +1,12 @@
 pipeline {
     agent any
+
+    environment {
+        IMAGE_NAME = "nour0205/my_app"
+        BUILD_TAG = "${env.BUILD_NUMBER}" // Jenkins build number
+        // Alternatively for commit SHA:
+        // BUILD_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+    }
     
     stages {
        stage('Clone Repository') {
@@ -23,7 +30,7 @@ stage('Run Tests') {
         stage('Build Docker Image') {
     steps {
         script {
-            bat 'docker build -t nour0205/my_app:1.0 .'
+            bat 'docker build -t ${IMAGE_NAME}:${BUILD_TAG} .'
         }
     }
 }
@@ -32,7 +39,7 @@ stage('Push Image to Docker Hub') {
         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
             script {
                 bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                bat "docker push nour0205/my_app:1.0"
+                bat "docker push ${IMAGE_NAME}:${BUILD_TAG}"
             }
         }
     }
