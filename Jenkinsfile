@@ -30,7 +30,7 @@ stage('Run Tests') {
         stage('Build Docker Image') {
     steps {
         script {
-            bat 'docker build -t ${IMAGE_NAME}:${BUILD_TAG} .'
+            bat "docker build -t %IMAGE_NAME%:%BUILD_TAG% ."
         }
     }
 }
@@ -39,7 +39,8 @@ stage('Push Image to Docker Hub') {
         withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
             script {
                 bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                bat "docker push ${IMAGE_NAME}:${BUILD_TAG}"
+                bat "docker build -t %IMAGE_NAME%:%BUILD_TAG% ."
+
             }
         }
     }
