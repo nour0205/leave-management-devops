@@ -9,7 +9,7 @@ router.post("/", async (req, res) => {
   });
   try {
     const savedItem = await item.save();
-    res.json(savedItem);
+    res.status(201).json(savedItem);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
