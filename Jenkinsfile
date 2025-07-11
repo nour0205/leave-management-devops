@@ -3,9 +3,8 @@ pipeline {
 
     environment {
         IMAGE_NAME = "nour0205/my_app"
-        BUILD_TAG = "${env.BUILD_NUMBER}" // Jenkins build number
-        // Alternatively for commit SHA:
-        // BUILD_TAG = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+        BUILD_TAG = "${env.BUILD_NUMBER}" 
+       
     }
     
     stages {
@@ -15,6 +14,14 @@ pipeline {
     }
 }
 
+stage('Install Dependencies & Generate Prisma Client') {
+            steps {
+                script {
+                    bat 'npm install'
+                    bat 'npx prisma generate'
+                }
+            }
+        }
 
 stage('Run Tests') {
     steps {

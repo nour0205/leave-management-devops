@@ -7,8 +7,11 @@ services:
       - "5001:3000"
     environment:
       - MONGODB_URI=mongodb://db:27017/my_app
+      - DATABASE_URL="postgresql://postgres:nour1234@localhost:5432/dashboarddb"
+
     depends_on:
       - db
+      - postgres
 
   db:
     image: mongo:latest
@@ -16,6 +19,12 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
-
+  postgres:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: yourpassword
+      POSTGRES_DB: dashboarddb
 volumes:
   mongo-data:
