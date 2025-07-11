@@ -17,7 +17,8 @@ pipeline {
 stage('Generate Prisma Client') {
             steps {
                 script {
-                    bat '.\\node_modules\\.bin\\prisma generate'
+                    bat 'node node_modules\\.bin\\prisma generate'
+
 
                 }
             }
