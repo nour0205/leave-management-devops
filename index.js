@@ -5,7 +5,7 @@ const port = 3000;
 const itemsRoute = require("./routes/items");
 const leaveRoutes = require("./dashboard/routes/leaveRoutes");
 const userRoutes = require("./dashboard/routes/userRoutes");
-const teamRoutes = require("./dashboard/routes/teamRoutes/");
+const teamRoutes = require("./dashboard/routes/teamRoutes");
 const notificationRoutes = require("./dashboard/routes/notificationRoutes");
 const managerRoutes = require("./dashboard/routes/managerRoutes");
 
