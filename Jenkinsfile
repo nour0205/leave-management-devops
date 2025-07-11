@@ -14,10 +14,9 @@ pipeline {
     }
 }
 
-stage('Install Dependencies & Generate Prisma Client') {
+stage('Generate Prisma Client') {
             steps {
                 script {
-                    bat 'npm install'
                     bat 'npx prisma generate'
                 }
             }
