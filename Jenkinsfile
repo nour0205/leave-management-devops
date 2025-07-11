@@ -14,15 +14,15 @@ pipeline {
     }
 }
 
-stage('Generate Prisma Client') {
-            steps {
-                script {
-                    bat 'node node_modules\\.bin\\prisma generate'
-
-
-                }
-            }
+stage('Install Dependencies & Generate Prisma Client') {
+    steps {
+        script {
+            bat 'npm install'
+            bat 'dir node_modules\\.bin'
+            bat 'npx prisma generate'
         }
+    }
+}
 
 stage('Run Tests') {
     steps {
