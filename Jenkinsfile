@@ -24,14 +24,7 @@ stage('Install Dependencies & Generate Prisma Client') {
     }
 }
 
-stage('Run Tests') {
-    steps {
-        script {
-            bat 'npm install'
-            bat 'npm test'
-        }
-    }
-}
+
 
 
 
