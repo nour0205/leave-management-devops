@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
- 
     "start": "node index.js"
   },
   "keywords": [],
@@ -20,8 +19,8 @@
     "react": "^19.1.0"
   },
   "devDependencies": {
-   
     "prisma": "^6.11.1",
-    "supertest": "^7.1.1"
+    "supertest": "^7.1.1",
+    "ts-node": "^10.9.2"
   }
 }
