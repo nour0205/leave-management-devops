@@ -52,9 +52,9 @@ pipeline {
             }
         }
 
-        stage('Run Prisma Migrate inside Container') {
+        stage('Run Prisma Migrate') {
             steps {
-                bat 'docker-compose exec web npx prisma migrate deploy'
+                bat 'docker exec -it myapppipeline-web-1 npx prisma migrate deploy'
             }
         }
     }

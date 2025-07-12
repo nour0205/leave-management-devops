@@ -8,6 +8,8 @@ RUN npm install
 
 COPY . .
 
+COPY .env .
+
 RUN npx prisma generate
 
 ENV PORT=3000
