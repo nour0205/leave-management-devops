@@ -48,7 +48,7 @@ pipeline {
             steps {
                 bat 'docker-compose down || exit 0'
                 bat 'docker-compose up -d --build'
-                bat 'timeout /t 10'  // Wait for DB & services to initialize
+                
             }
         }
 
