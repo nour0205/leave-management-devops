@@ -22,6 +22,22 @@ pipeline {
                 }
             }
         }
+
+stage('Run Backend Tests') {
+    steps {
+        script {
+            bat 'npm run test'
+        }
+    }
+    post {
+        always {
+            junit 'reports/junit.xml'
+        }
+    }
+}
+
+
+
          stage('Build Frontend') {
             steps {
                 dir('frontend') {
