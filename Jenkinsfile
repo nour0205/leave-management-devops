@@ -22,6 +22,16 @@ pipeline {
                 }
             }
         }
+         stage('Build Frontend') {
+            steps {
+                dir('frontend') {
+                    bat 'npm install'
+                    bat 'npm run build'
+                }
+                bat 'rmdir /S /Q public || exit 0'
+                bat 'move frontend\\dist public'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {

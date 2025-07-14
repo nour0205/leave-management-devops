@@ -2,12 +2,17 @@ const express = require("express");
 const app = express();
 const port = 3000;
 
-const itemsRoute = require("./routes/items");
 const leaveRoutes = require("./dashboard/routes/leaveRoutes");
+
 const userRoutes = require("./dashboard/routes/userRoutes");
+
 const teamRoutes = require("./dashboard/routes/teamRoutes");
+
 const notificationRoutes = require("./dashboard/routes/notificationRoutes");
+
 const managerRoutes = require("./dashboard/routes/managerRoutes");
+
+const path = require("path");
 
 const mongoose = require("mongoose");
 
@@ -19,15 +24,20 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use(express.json());
-app.use("/api/items", itemsRoute);
+
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/manager", managerRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Hello DevOps World!");
+const staticPath = path.join(__dirname, "public");
+app.use(express.static(staticPath));
+
+// ✅ Catch-all for SPA routes — must come last
+app.get(/^\/(?!api\/).*/, (req, res) => {
+  console.log("🌍 SPA fallback hit for:", req.url);
+  res.sendFile(path.join(staticPath, "index.html"));
 });
 
 app.listen(port, () => {
