@@ -7,7 +7,7 @@ services:
       - "5001:3000"
     environment:
       - MONGODB_URI=mongodb://db:27018/my_app
-      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5433/dashboarddb
+      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5432/dashboarddb
 
 
     depends_on:
