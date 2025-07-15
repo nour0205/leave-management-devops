@@ -35,15 +35,12 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/manager", managerRoutes);
 app.use("/api/roles", roleRoutes);
 
-const staticPath = path.join(__dirname, "public");
+const frontendPath = path.join(__dirname, "frontend/dist");
+app.use(express.static(frontendPath));
 
-app.use(express.static(staticPath));
-
-/* if (process.env.NODE_ENV !== "test") {
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
-  });
-}*/
+app.get("*", (req, res) => {
+  res.sendFile("index.html", { root: frontendPath });
+});
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {

@@ -4,7 +4,7 @@ services:
   web:
     build: .
     ports:
-      - "5001:3000"
+      - "5010:3000"
     environment:
       - MONGODB_URI=mongodb://db:27019/my_app
       - DATABASE_URL=postgresql://postgres:nour1234@postgres:5432/dashboarddb
@@ -17,7 +17,7 @@ services:
   db:
     image: mongo:latest
     ports:
-      - "27019:27017"
+      - "27020:27017"
     volumes:
       - mongo-data:/data/db
   postgres:
@@ -28,7 +28,7 @@ services:
       POSTGRES_PASSWORD: nour1234
       POSTGRES_DB: dashboarddb
     ports:
-      - "5434:5432"
+      - "5435:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 volumes:
