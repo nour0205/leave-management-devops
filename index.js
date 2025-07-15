@@ -1,6 +1,7 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express();
-const port = 3000;
 
 const leaveRoutes = require("./dashboard/routes/leaveRoutes");
 
@@ -18,11 +19,13 @@ const path = require("path");
 
 const mongoose = require("mongoose");
 
+const port = process.env.PORT || 3000;
+const mongoURI = process.env.MONGODB_URI;
+const dbUrl = process.env.DATABASE_URL;
+
 if (process.env.NODE_ENV !== "test") {
   mongoose
-    .connect(
-      "mongodb+srv://nourkouider05:nour0205@cluster0.pbcypam.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-    )
+    .connect(mongoURI)
     .then(() => console.log("Connected to MongoDB"))
     .catch((err) => console.error("MongoDB connection error:", err));
 }
