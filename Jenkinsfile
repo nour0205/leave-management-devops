@@ -107,27 +107,27 @@ stage('Run Backend Tests') {
             }
         }
 
-        stage('Run Prisma Migrate') {
+      stage('Run Prisma Migrate') {
   steps {
     bat '''
 @echo off
-echo 🔄 Waiting for PostgreSQL to become ready...
+echo 🔄 Waiting for PostgreSQL to become reachable from web container...
 
 set RETRIES=10
 set WAIT=3
 
 for /L %%i in (1,1,%RETRIES%) do (
     echo ⏳ Attempt %%i of %RETRIES%...
-    docker exec myapppipeline-postgres-1 pg_isready -U postgres
+    docker exec myapppipeline-web-1 pg_isready -h postgres -U postgres
     if %ERRORLEVEL% EQU 0 (
-        echo ✅ PostgreSQL is ready!
+        echo ✅ PostgreSQL is reachable from web!
         goto :migrate
     )
     echo 💤 Not ready yet. Waiting %WAIT% seconds...
     ping -n %WAIT% 127.0.0.1 > nul
 )
 
-echo ❌ PostgreSQL did not become ready after %RETRIES% attempts.
+echo ❌ PostgreSQL did not become reachable after %RETRIES% attempts.
 exit /b 1
 
 :migrate
@@ -136,6 +136,7 @@ docker exec myapppipeline-web-1 npx prisma migrate deploy
 '''
   }
 }
+
 
     }
 
