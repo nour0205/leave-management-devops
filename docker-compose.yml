@@ -8,7 +8,7 @@ services:
       - "5001:3000"  # Host:Container
     environment:
       - MONGODB_URI=mongodb://mongo:27017/my_app
-      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5433/dashboarddb
+      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5432/dashboarddb
     depends_on:
       - mongo
       - postgres
@@ -33,7 +33,7 @@ services:
       timeout: 5s
       retries: 5
     ports:
-      - "5433:5432"  # Host 5433 to avoid conflict with local PostgreSQL
+      - "5432:5432"  # Host 5433 to avoid conflict with local PostgreSQL
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
