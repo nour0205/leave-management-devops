@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   web:
+    mem_limit: 2g
     build: .
     ports:
       - "5001:3000"  # Host:Container
