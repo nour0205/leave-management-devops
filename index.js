@@ -36,14 +36,14 @@ app.use("/api/manager", managerRoutes);
 app.use("/api/roles", roleRoutes);
 
 const staticPath = path.join(__dirname, "public");
+
 app.use(express.static(staticPath));
 
-if (process.env.NODE_ENV !== "test") {
+/* if (process.env.NODE_ENV !== "test") {
   app.get("*", (req, res) => {
-    console.log(`🌍 SPA fallback hit for: ${req.originalUrl}`);
     res.sendFile(path.join(__dirname, "frontend/dist/index.html"));
   });
-}
+}*/
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
