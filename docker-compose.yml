@@ -6,7 +6,7 @@ services:
     ports:
       - "5001:3000"
     environment:
-      - MONGODB_URI=mongodb://db:27018/my_app
+      - MONGODB_URI=mongodb://db:27019/my_app
       - DATABASE_URL=postgresql://postgres:nour1234@postgres:5432/dashboarddb
 
 
@@ -17,7 +17,7 @@ services:
   db:
     image: mongo:latest
     ports:
-      - "27018:27017"
+      - "27019:27017"
     volumes:
       - mongo-data:/data/db
   postgres:
