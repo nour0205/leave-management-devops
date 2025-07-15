@@ -7,6 +7,15 @@ pipeline {
     }
 
     stages {
+        stage('Cleanup') {
+      steps {
+        bat 'docker-compose down -v || exit 0'
+      }
+    }
+
+
+
+
         stage('Clone Repository') {
             steps {
                 git branch: 'main', url: 'https://github.com/nour0205/devops_my_app.git'
