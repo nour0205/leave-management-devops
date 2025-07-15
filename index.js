@@ -1,5 +1,3 @@
-require("dotenv").config();
-
 const express = require("express");
 const app = express();
 
@@ -19,9 +17,9 @@ const path = require("path");
 
 const mongoose = require("mongoose");
 
-const port = process.env.PORT || 3000;
-const mongoURI = process.env.MONGODB_URI;
-const dbUrl = process.env.DATABASE_URL;
+const port = 3000;
+const mongoURI = "mongodb://mongo:27017/my_app";
+const dbUrl = "postgresql://postgres:nour1234@postgres:5432/dashboarddb";
 
 if (process.env.NODE_ENV !== "test") {
   mongoose

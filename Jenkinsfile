@@ -7,7 +7,30 @@ pipeline {
     }
 
     stages {
-         
+       stage('Cleanup') {
+    steps {
+        bat '''
+            echo [CLEANUP] Stopping and removing previous Docker Compose containers...
+            docker compose down -v || exit 0
+
+            echo [CLEANUP] Forcibly removing specific containers if still running...
+            for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-web-1"') do docker rm -f %%i
+            for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-postgres-1"') do docker rm -f %%i
+            for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-mongo-1"') do docker rm -f %%i
+
+            echo [CLEANUP] Killing any process locking port 5001 (web)...
+            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5001 ^| findstr LISTENING') do taskkill /PID %%i /F
+
+            echo [CLEANUP] Killing any process locking port 5433 (PostgreSQL)...
+            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5433 ^| findstr LISTENING') do taskkill /PID %%i /F
+
+            echo [CLEANUP] Killing any process locking port 27018 (MongoDB)...
+            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27018 ^| findstr LISTENING') do taskkill /PID %%i /F
+
+            echo [CLEANUP] Cleanup complete.
+        '''
+    }
+}
 
 
 

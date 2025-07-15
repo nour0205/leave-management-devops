@@ -1,21 +1,21 @@
-version: '3'
+version: '3.8'
 
 services:
   web:
     build: .
     ports:
-      - "${PORT}:3000"
+      - "5001:3000"  # Host:Container
     environment:
-      - MONGODB_URI=${MONGO_URI}
-      - DATABASE_URL=${POSTGRES_URL}
+      - MONGODB_URI=mongodb://mongo:27017/my_app
+      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5432/dashboarddb
     depends_on:
-      - db
+      - mongo
       - postgres
 
-  db:
+  mongo:
     image: mongo:latest
     ports:
-      - "${MONGO_PORT}:27017"  # 👈 host:container
+      - "27018:27017"  # Host 27018 to avoid conflict with local Mongo
     volumes:
       - mongo-data:/data/db
 
@@ -23,11 +23,11 @@ services:
     image: postgres:latest
     restart: always
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=nour1234
+      - POSTGRES_DB=dashboarddb
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5433:5432"  # Host 5433 to avoid conflict with local PostgreSQL
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
