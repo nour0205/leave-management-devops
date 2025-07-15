@@ -19,7 +19,7 @@ const mongoose = require("mongoose");
 
 const port = 3000;
 const mongoURI = "mongodb://mongo:27017/my_app";
-const dbUrl = "postgresql://postgres:nour1234@postgres:5432/dashboarddb";
+const dbUrl = "postgresql://postgres:nour1234@postgres:5433/dashboarddb";
 
 if (process.env.NODE_ENV !== "test") {
   mongoose

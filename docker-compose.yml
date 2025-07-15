@@ -8,7 +8,7 @@ services:
       - "5001:3000"  # Host:Container
     environment:
       - MONGODB_URI=mongodb://mongo:27017/my_app
-      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5432/dashboarddb
+      - DATABASE_URL=postgresql://postgres:nour1234@postgres:5433/dashboarddb
     depends_on:
       - mongo
       - postgres
