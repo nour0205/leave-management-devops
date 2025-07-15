@@ -36,11 +36,14 @@ app.use("/api/manager", managerRoutes);
 app.use("/api/roles", roleRoutes);
 
 const frontendPath = path.join(__dirname, "frontend/dist");
-app.use(express.static(frontendPath));
 
-app.get("*", (req, res) => {
-  res.sendFile("index.html", { root: frontendPath });
-});
+if (process.env.NODE_ENV !== "test") {
+  app.use(express.static(frontendPath));
+
+  app.get("*", (req, res) => {
+    res.sendFile("index.html", { root: frontendPath });
+  });
+}
 
 if (process.env.NODE_ENV !== "test") {
   app.listen(port, () => {
