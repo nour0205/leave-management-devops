@@ -7,11 +7,20 @@ pipeline {
     }
 
     stages {
-        stage('Cleanup') {
-      steps {
-        bat 'docker-compose down -v || exit 0'
-      }
-    }
+            stage('Cleanup') {
+            steps {
+                bat '''
+                    echo Stopping and removing previous containers...
+                    docker compose down -v || exit 0
+
+                    echo Force-removing any leftover postgres container...
+                    for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-postgres-1"') do docker rm -f %%i
+
+                    echo Docker cleanup complete.
+                '''
+            }
+        }
+
 
 
 
