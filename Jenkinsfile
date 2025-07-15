@@ -21,8 +21,8 @@ pipeline {
             echo [CLEANUP] Killing any process locking port 5001 (web)...
             for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5001 ^| findstr LISTENING') do taskkill /PID %%i /F
 
-            echo [CLEANUP] Killing any process locking port 5433 (PostgreSQL)...
-            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5433 ^| findstr LISTENING') do taskkill /PID %%i /F
+            echo [CLEANUP] Killing any process locking port 5432 (PostgreSQL)...
+            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5432 ^| findstr LISTENING') do taskkill /PID %%i /F
 
             echo [CLEANUP] Killing any process locking port 27018 (MongoDB)...
             for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27018 ^| findstr LISTENING') do taskkill /PID %%i /F
@@ -108,11 +108,35 @@ stage('Run Backend Tests') {
         }
 
         stage('Run Prisma Migrate') {
-            steps {
-                bat 'docker exec myapppipeline-web-1 npx prisma migrate deploy'
+  steps {
+    bat '''
+@echo off
+echo 🔄 Waiting for PostgreSQL to become ready...
 
-            }
-        }
+set RETRIES=10
+set WAIT=3
+
+for /L %%i in (1,1,%RETRIES%) do (
+    echo ⏳ Attempt %%i of %RETRIES%...
+    docker exec myapppipeline-postgres-1 pg_isready -U postgres
+    if %ERRORLEVEL% EQU 0 (
+        echo ✅ PostgreSQL is ready!
+        goto :migrate
+    )
+    echo 💤 Not ready yet. Waiting %WAIT% seconds...
+    ping -n %WAIT% 127.0.0.1 > nul
+)
+
+echo ❌ PostgreSQL did not become ready after %RETRIES% attempts.
+exit /b 1
+
+:migrate
+echo 🚀 Running Prisma Migrate Deploy...
+docker exec myapppipeline-web-1 npx prisma migrate deploy
+'''
+  }
+}
+
     }
 
     post {
