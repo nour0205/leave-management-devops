@@ -89,7 +89,7 @@ stage('Run Backend Tests') {
 
         stage('Run Prisma Migrate') {
             steps {
-                bat 'docker exec myapppipeline-web-1 npx prisma migrate deploy --skip-generate'
+                bat 'docker exec myapppipeline-web-1 npx prisma migrate deploy'
 
             }
         }
