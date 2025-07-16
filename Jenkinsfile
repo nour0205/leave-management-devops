@@ -141,7 +141,8 @@ docker exec myapppipeline-web-1 npx prisma migrate deploy
 stage('Code Quality - SonarQube') {
     steps {
         withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-            bat 'sonar-scanner -Dsonar.login=%SONAR_TOKEN%'
+            bat '"C:\\Program Files\\sonar-scanner-7.1.0.4889-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.login=%SONAR_TOKEN%'
+
         }
     }
 }
