@@ -24,8 +24,8 @@ pipeline {
             echo [CLEANUP] Killing any process locking port 5432 (PostgreSQL)...
             for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5432 ^| findstr LISTENING') do taskkill /PID %%i /F
 
-            echo [CLEANUP] Killing any process locking port 27018 (MongoDB)...
-            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27018 ^| findstr LISTENING') do taskkill /PID %%i /F
+            echo [CLEANUP] Killing any process locking port 27017 (MongoDB)...
+            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27017 ^| findstr LISTENING') do taskkill /PID %%i /F
 
             echo [CLEANUP] Cleanup complete.
         '''

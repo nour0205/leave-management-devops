@@ -16,7 +16,7 @@ services:
   mongo:
     image: mongo:latest
     ports:
-      - "27018:27017"  # Host 27018 to avoid conflict with local Mongo
+      - "27017:27017"  
     volumes:
       - mongo-data:/data/db
 

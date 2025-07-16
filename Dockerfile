@@ -28,6 +28,8 @@ RUN npm install
 COPY . .
 
 
+
+
 # Copy frontend build to backend's public folder
 
 COPY --from=frontend-build /app/frontend/dist ./public
