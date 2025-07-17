@@ -8,30 +8,29 @@ pipeline {
 
     stages {
 
-        stage('Verify Docker Daemon') {
-            steps {
-                bat 'echo 🔍 Checking Docker daemon...'
-                bat 'docker info || (echo ❌ Docker is not available! && exit 1)'
-            }
-        }
+        
 
         stage('Cleanup') {
             steps {
                 bat '''
-                    echo 🧹 [CLEANUP] Stopping and removing Docker Compose containers...
+                    echo [CLEANUP] Stopping and removing previous Docker Compose containers...
                     docker compose down -v || exit 0
 
-                    echo 🧹 Removing any lingering containers...
+                    echo [CLEANUP] Forcibly removing specific containers if still running...
                     for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-web-1"') do docker rm -f %%i
                     for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-postgres-1"') do docker rm -f %%i
                     for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-mongo-1"') do docker rm -f %%i
 
-                    echo 🔪 Killing processes on locked ports (5001, 5432, 27017)...
+                    echo [CLEANUP] Killing any process locking port 5001 (web)...
                     for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5001 ^| findstr LISTENING') do taskkill /PID %%i /F
+
+                    echo [CLEANUP] Killing any process locking port 5432 (PostgreSQL)...
                     for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5432 ^| findstr LISTENING') do taskkill /PID %%i /F
+
+                    echo [CLEANUP] Killing any process locking port 27017 (MongoDB)...
                     for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27017 ^| findstr LISTENING') do taskkill /PID %%i /F
 
-                    echo ✅ Cleanup complete.
+                    echo [CLEANUP] Cleanup complete.
                 '''
             }
         }
@@ -44,7 +43,6 @@ pipeline {
 
         stage('Install Dependencies & Generate Prisma Client') {
             steps {
-                bat 'echo 📦 Installing backend dependencies...'
                 bat 'npm install'
                 bat 'dir node_modules\\.bin'
                 bat 'npx prisma generate'
@@ -53,7 +51,6 @@ pipeline {
 
         stage('Run Backend Tests') {
             steps {
-                bat 'echo 🧪 Running backend tests...'
                 bat 'npm run test'
             }
             post {
@@ -66,9 +63,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 dir('frontend') {
-                    bat 'echo 📦 Installing frontend dependencies...'
                     bat 'npm install'
-                    bat 'echo 🛠️ Building frontend...'
                     bat 'npm run build'
                 }
                 bat 'rmdir /S /Q public || exit 0'
@@ -78,8 +73,8 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'echo 🐳 Building Docker image...'
-                bat "docker build -t ${IMAGE_NAME}:${BUILD_TAG} ."
+                  bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" build -t myapp .'
+                //bat "docker build -t ${IMAGE_NAME}:${BUILD_TAG} ."
             }
         }
 
@@ -87,9 +82,7 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     bat """
-                        echo 🔐 Logging into Docker Hub...
                         docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-                        echo 🏷️ Tagging and pushing image...
                         docker tag ${IMAGE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:latest
                         docker push ${IMAGE_NAME}:${BUILD_TAG}
                         docker push ${IMAGE_NAME}:latest
@@ -100,9 +93,8 @@ pipeline {
 
         stage('Deploy with Docker Compose') {
             steps {
-                bat 'echo 🚀 Deploying containers with Docker Compose...'
-                bat 'docker compose down || exit 0'
-                bat 'docker compose up -d --build'
+                bat 'docker-compose down || exit 0'
+                bat 'docker-compose up -d --build'
             }
         }
 
@@ -139,7 +131,6 @@ docker exec myapppipeline-web-1 npx prisma migrate deploy
         stage('Code Quality - SonarQube') {
             steps {
                 withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-                    bat 'echo 🔎 Running SonarQube analysis...'
                     bat 'npm test'
                     bat '"C:\\Program Files\\sonar-scanner-7.1.0.4889-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.token=%SONAR_TOKEN%'
                 }
@@ -153,9 +144,6 @@ docker exec myapppipeline-web-1 npx prisma migrate deploy
         }
         failure {
             echo "❌ Deployment failed!"
-        }
-        always {
-            cleanWs()
         }
     }
 }
