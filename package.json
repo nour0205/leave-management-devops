@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "jest --reporters=default --reporters=jest-junit"
-  },
+  "start": "node index.js",
+  "test": "jest --coverage --reporters=default --reporters=jest-junit"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,6 +23,7 @@
   "devDependencies": {
     "jest": "^30.0.4",
     "jest-junit": "^16.0.0",
+    "jest-sonar": "^0.2.16",
     "prisma": "^6.11.1",
     "supertest": "^7.1.1",
     "ts-node": "^10.9.2"
@@ -30,5 +31,14 @@
   "jest-junit": {
     "outputDirectory": "reports",
     "outputName": "junit.xml"
-  }
+  },
+ "jest": {
+  "reporters": [
+    "default",
+    ["jest-junit", { "outputDirectory": "reports", "outputName": "junit.xml" }]
+  ]
+},
+"jestSonar": {
+  "reportFile": "reports/sonar-report.xml"
+}
 }
