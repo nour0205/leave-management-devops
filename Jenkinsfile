@@ -73,23 +73,24 @@ pipeline {
 
        stage('Build Docker Image') {
     steps {
-        bat 'docker build -t myapp .'
+        bat """
+            docker build -t ${IMAGE_NAME}:${BUILD_TAG} .
+            docker tag ${IMAGE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:latest
+        """
     }
 }
 
-
-        stage('Push Image to Docker Hub') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    bat """
-                        docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
-                        docker tag ${IMAGE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:latest
-                        docker push ${IMAGE_NAME}:${BUILD_TAG}
-                        docker push ${IMAGE_NAME}:latest
-                    """
-                }
-            }
+stage('Push Image to Docker Hub') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+            bat """
+                docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%
+                docker push ${IMAGE_NAME}:${BUILD_TAG}
+                docker push ${IMAGE_NAME}:latest
+            """
         }
+    }
+}
 
         stage('Deploy with Docker Compose') {
             steps {
