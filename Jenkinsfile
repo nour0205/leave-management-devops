@@ -3,43 +3,41 @@ pipeline {
 
     environment {
         IMAGE_NAME = "nour0205/my_app"
-        BUILD_TAG = "${env.BUILD_NUMBER}" 
+        BUILD_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
 
-          stage('Test Docker') {
-      steps {
-        sh 'docker version'
-      }
-       stage('Cleanup') {
-    steps {
-        bat '''
-            echo [CLEANUP] Stopping and removing previous Docker Compose containers...
-            docker compose down -v || exit 0
+        stage('Test Docker') {
+            steps {
+                bat 'docker version'
+            }
+        }
 
-            echo [CLEANUP] Forcibly removing specific containers if still running...
-            for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-web-1"') do docker rm -f %%i
-            for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-postgres-1"') do docker rm -f %%i
-            for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-mongo-1"') do docker rm -f %%i
+        stage('Cleanup') {
+            steps {
+                bat '''
+                    echo [CLEANUP] Stopping and removing previous Docker Compose containers...
+                    docker compose down -v || exit 0
 
-            echo [CLEANUP] Killing any process locking port 5001 (web)...
-            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5001 ^| findstr LISTENING') do taskkill /PID %%i /F
+                    echo [CLEANUP] Forcibly removing specific containers if still running...
+                    for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-web-1"') do docker rm -f %%i
+                    for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-postgres-1"') do docker rm -f %%i
+                    for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-mongo-1"') do docker rm -f %%i
 
-            echo [CLEANUP] Killing any process locking port 5432 (PostgreSQL)...
-            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5432 ^| findstr LISTENING') do taskkill /PID %%i /F
+                    echo [CLEANUP] Killing any process locking port 5001 (web)...
+                    for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5001 ^| findstr LISTENING') do taskkill /PID %%i /F
 
-            echo [CLEANUP] Killing any process locking port 27017 (MongoDB)...
-            for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27017 ^| findstr LISTENING') do taskkill /PID %%i /F
+                    echo [CLEANUP] Killing any process locking port 5432 (PostgreSQL)...
+                    for /f "tokens=5" %%i in ('netstat -aon ^| findstr :5432 ^| findstr LISTENING') do taskkill /PID %%i /F
 
-            echo [CLEANUP] Cleanup complete.
-        '''
-    }
-}
+                    echo [CLEANUP] Killing any process locking port 27017 (MongoDB)...
+                    for /f "tokens=5" %%i in ('netstat -aon ^| findstr :27017 ^| findstr LISTENING') do taskkill /PID %%i /F
 
-
-
-
+                    echo [CLEANUP] Cleanup complete.
+                '''
+            }
+        }
 
         stage('Clone Repository') {
             steps {
@@ -49,30 +47,24 @@ pipeline {
 
         stage('Install Dependencies & Generate Prisma Client') {
             steps {
-                script {
-                    bat 'npm install'
-                    bat 'dir node_modules\\.bin'
-                    bat 'npx prisma generate'
+                bat 'npm install'
+                bat 'dir node_modules\\.bin'
+                bat 'npx prisma generate'
+            }
+        }
+
+        stage('Run Backend Tests') {
+            steps {
+                bat 'npm run test'
+            }
+            post {
+                always {
+                    junit 'reports/junit.xml'
                 }
             }
         }
 
-stage('Run Backend Tests') {
-    steps {
-        script {
-            bat 'npm run test'
-        }
-    }
-    post {
-        always {
-            junit 'reports/junit.xml'
-        }
-    }
-}
-
-
-
-         stage('Build Frontend') {
+        stage('Build Frontend') {
             steps {
                 dir('frontend') {
                     bat 'npm install'
@@ -85,21 +77,19 @@ stage('Run Backend Tests') {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    bat "docker build -t %IMAGE_NAME%:%BUILD_TAG% ."
-                }
+                bat "docker build -t ${IMAGE_NAME}:${BUILD_TAG} ."
             }
         }
 
         stage('Push Image to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    script {
-                        bat "docker login -u %DOCKER_USERNAME% -p %DOCKER_PASSWORD%"
-                        bat "docker tag %IMAGE_NAME%:%BUILD_TAG% %IMAGE_NAME%:latest"
-                        bat "docker push %IMAGE_NAME%:%BUILD_TAG%"
-                        bat "docker push %IMAGE_NAME%:latest"
-                    }
+                    bat """
+                        docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
+                        docker tag ${IMAGE_NAME}:${BUILD_TAG} ${IMAGE_NAME}:latest
+                        docker push ${IMAGE_NAME}:${BUILD_TAG}
+                        docker push ${IMAGE_NAME}:latest
+                    """
                 }
             }
         }
@@ -108,13 +98,12 @@ stage('Run Backend Tests') {
             steps {
                 bat 'docker-compose down || exit 0'
                 bat 'docker-compose up -d --build'
-                
             }
         }
 
-      stage('Run Prisma Migrate') {
-  steps {
-    bat '''
+        stage('Run Prisma Migrate') {
+            steps {
+                bat '''
 @echo off
 echo 🔄 Waiting for PostgreSQL to become reachable from web container...
 
@@ -124,7 +113,7 @@ set WAIT=3
 for /L %%i in (1,1,%RETRIES%) do (
     echo ⏳ Attempt %%i of %RETRIES%...
     docker exec myapppipeline-web-1 pg_isready -h postgres -U postgres
-    if %ERRORLEVEL% EQU 0 (
+    if !ERRORLEVEL! EQU 0 (
         echo ✅ PostgreSQL is reachable from web!
         goto :migrate
     )
@@ -139,32 +128,25 @@ exit /b 1
 echo 🚀 Running Prisma Migrate Deploy...
 docker exec myapppipeline-web-1 npx prisma migrate deploy
 '''
-  }
-}
-
-
-stage('Code Quality - SonarQube') {
-    steps {
-        withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-        bat 'npm test'
-           bat '"C:\\Program Files\\sonar-scanner-7.1.0.4889-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.token=%SONAR_TOKEN%'
-
-
+            }
         }
-    }
-}
 
-
-
-
+        stage('Code Quality - SonarQube') {
+            steps {
+                withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
+                    bat 'npm test'
+                    bat '"C:\\Program Files\\sonar-scanner-7.1.0.4889-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.token=%SONAR_TOKEN%'
+                }
+            }
+        }
     }
 
     post {
         success {
-            echo " Deployment successful!"
+            echo "✅ Deployment successful!"
         }
         failure {
-            echo " Deployment failed!"
+            echo "❌ Deployment failed!"
         }
     }
 }
