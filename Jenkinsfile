@@ -7,6 +7,11 @@ pipeline {
     }
 
     stages {
+
+          stage('Test Docker') {
+      steps {
+        sh 'docker version'
+      }
        stage('Cleanup') {
     steps {
         bat '''
