@@ -71,12 +71,12 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                  bat '"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" build -t myapp .'
-                //bat "docker build -t ${IMAGE_NAME}:${BUILD_TAG} ."
-            }
-        }
+       stage('Build Docker Image') {
+    steps {
+        bat 'docker build -t myapp .'
+    }
+}
+
 
         stage('Push Image to Docker Hub') {
             steps {
