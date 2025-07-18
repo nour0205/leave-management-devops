@@ -100,34 +100,41 @@ stage('Push Image to Docker Hub') {
         }
 
         stage('Run Prisma Migrate') {
-            steps {
-                bat '''
+    steps {
+        bat '''
 @echo off
-echo 🔄 Waiting for PostgreSQL to become reachable from web container...
+setlocal enabledelayedexpansion
+echo 🔄 Waiting for PostgreSQL container to become healthy...
 
 set RETRIES=10
 set WAIT=3
+set ATTEMPT=1
 
-for /L %%i in (1,1,%RETRIES%) do (
-    echo ⏳ Attempt %%i of %RETRIES%...
-    docker exec myapppipeline-web-1 pg_isready -h postgres -U postgres
-    if !ERRORLEVEL! EQU 0 (
-        echo ✅ PostgreSQL is reachable from web!
+:wait_loop
+for /f %%H in ('docker inspect --format="{{.State.Health.Status}}" myapppipeline-postgres-1') do (
+    if "%%H"=="healthy" (
+        echo ✅ PostgreSQL is healthy!
         goto :migrate
     )
-    echo 💤 Not ready yet. Waiting %WAIT% seconds...
-    ping -n %WAIT% 127.0.0.1 > nul
 )
 
-echo ❌ PostgreSQL did not become reachable after %RETRIES% attempts.
-exit /b 1
+echo ⏳ Attempt !ATTEMPT! of %RETRIES%: Not healthy yet...
+set /a ATTEMPT+=1
+if !ATTEMPT! GTR %RETRIES% (
+    echo ❌ PostgreSQL did not become healthy after %RETRIES% attempts.
+    exit /b 1
+)
+
+timeout /T %WAIT% >nul
+goto :wait_loop
 
 :migrate
 echo 🚀 Running Prisma Migrate Deploy...
 docker exec myapppipeline-web-1 npx prisma migrate deploy
 '''
-            }
-        }
+    }
+}
+
 
         stage('Code Quality - SonarQube') {
             steps {
