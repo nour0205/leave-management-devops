@@ -99,38 +99,39 @@ stage('Push Image to Docker Hub') {
             }
         }
 
-        stage('Run Prisma Migrate') {
+   stage('Run Prisma Migrate') {
   steps {
     powershell '''
-    Write-Host "🔄 Waiting for PostgreSQL container to become healthy..."
+Write-Host "🔄 Waiting for PostgreSQL container to become healthy..."
 
-    $maxRetries = 10
-    $waitSeconds = 3
-    $attempt = 1
+$maxRetries = 10
+$waitSeconds = 3
+$attempt = 1
 
-    while ($attempt -le $maxRetries) {
-        $health = docker inspect --format="{{.State.Health.Status}}" myapppipeline-postgres-1 2>$null
+while ($attempt -le $maxRetries) {
+    $health = docker inspect --format="{{.State.Health.Status}}" myapppipeline-postgres-1 2>$null
 
-        if ($health -eq "healthy") {
-            Write-Host "✅ PostgreSQL is healthy!"
-            break
-        }
-
-        Write-Host "⏳ Attempt $attempt of $maxRetries: Not healthy yet..."
-        Start-Sleep -Seconds $waitSeconds
-        $attempt++
+    if ($health -eq "healthy") {
+        Write-Host "✅ PostgreSQL is healthy!"
+        break
     }
 
-    if ($attempt -gt $maxRetries) {
-        Write-Host "❌ PostgreSQL did not become healthy after $maxRetries attempts."
-        exit 1
-    }
+    Write-Host ("⏳ Attempt {0} of {1}: Not healthy yet..." -f $attempt, $maxRetries)
+    Start-Sleep -Seconds $waitSeconds
+    $attempt++
+}
 
-    Write-Host "🚀 Running Prisma Migrate Deploy..."
-    docker exec myapppipeline-web-1 npx prisma migrate deploy
-    '''
+if ($attempt -gt $maxRetries) {
+    Write-Host "❌ PostgreSQL did not become healthy after $maxRetries attempts."
+    exit 1
+}
+
+Write-Host "🚀 Running Prisma Migrate Deploy..."
+docker exec myapppipeline-web-1 npx prisma migrate deploy
+'''
   }
 }
+
 
 
 
