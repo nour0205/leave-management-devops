@@ -1,16 +1,14 @@
-const express = require("express");
+import express from "express";
+import {
+  getAllLeaveRequests,
+  submitLeaveRequest,
+  reviewLeaveRequest,
+} from "../controllers/leaveController.js";
+
 const router = express.Router();
 
-const {
-  getAllLeaves,
-  createLeave,
-  updateLeave,
-  deleteLeave,
-} = require("../controllers/leaveController");
+router.get("/", getAllLeaveRequests);
+router.post("/", submitLeaveRequest);
+router.patch("/:id/review", reviewLeaveRequest);
 
-router.get("/", getAllLeaves);
-router.post("/", createLeave);
-router.put("/:id", updateLeave);
-router.delete("/:id", deleteLeave);
-
-module.exports = router;
+export default router;

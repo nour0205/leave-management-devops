@@ -1,35 +1,22 @@
-const jwt = require("jsonwebtoken");
-const { PrismaClient } = require("../../generated/prisma");
-const prisma = new PrismaClient();
+import jwt from "jsonwebtoken";
 
-exports.verifyToken = (req, res, next) => {
+export const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.split(" ")[1];
+  if (!authHeader) return res.status(401).json({ error: "Missing token" });
 
-  if (!token) return res.status(401).json({ message: "No token provided" });
-
+  const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
+    req.user = decoded;
     next();
-  } catch (err) {
-    return res.status(403).json({ message: "Invalid token" });
+  } catch {
+    res.status(403).json({ error: "Invalid token" });
   }
 };
 
-exports.requireRole = (roleName) => {
-  return async (req, res, next) => {
-    const user = await prisma.user.findUnique({
-      where: { id: req.userId },
-      include: { roles: true },
-    });
-
-    if (!user || !user.roles.some((r) => r.name === roleName)) {
-      return res
-        .status(403)
-        .json({ message: "Access denied – insufficient role" });
-    }
-
-    next();
-  };
+export const authorize = (roles) => (req, res, next) => {
+  if (!roles.includes(req.user.role)) {
+    return res.status(403).json({ error: "Access denied" });
+  }
+  next();
 };

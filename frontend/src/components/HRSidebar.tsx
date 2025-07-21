@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Calendar, CheckSquare, Users, BarChart3, Settings, UserCheck, ClipboardList } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useHR } from "@/contexts/HRContext";
+import logosopra from "../../public/logosopra.png"
 import {
   Sidebar,
   SidebarContent,
@@ -53,7 +54,7 @@ export function HRSidebar() {
         <div className="p-4 border-b">
           {!isCollapsed && (
             <div>
-              <h2 className="text-lg font-semibold text-foreground">HR Portal</h2>
+               <img src={logosopra} alt="Dashboard Icon" className="w-100 h-100" />
               <p className="text-sm text-muted-foreground capitalize">{currentUser?.role} Dashboard</p>
             </div>
           )}

@@ -1,68 +1,49 @@
-const { PrismaClient } = require("../../generated/prisma");
+import { prisma } from "../prisma/prisma.js";
 
-const prisma = new PrismaClient();
-
-// Get all leaves
-const getAllLeaves = async (req, res) => {
-  try {
-    const leaves = await prisma.absence.findMany();
-    res.json(leaves);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+export const getAllLeaveRequests = async (_req, res) => {
+  const requests = await prisma.leaveRequest.findMany({
+    include: {
+      employee: true,
+      reviewedBy: true,
+    },
+  });
+  res.json(requests);
 };
 
-// Create new leave
-const createLeave = async (req, res) => {
-  try {
-    const { userId, type, startDate, endDate, status, comment } = req.body;
-    const leave = await prisma.absence.create({
-      data: {
-        userId,
-        type,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        status,
-        comment,
-      },
-    });
-    res.json(leave);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+export const submitLeaveRequest = async (req, res) => {
+  const { employeeId, employeeName, startDate, endDate, reason } = req.body;
+
+  const newLeave = await prisma.leaveRequest.create({
+    data: {
+      employeeId,
+      employeeName,
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      reason,
+    },
+  });
+
+  res.status(201).json(newLeave);
 };
 
-// Update leave
-const updateLeave = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { status, refusalComment } = req.body;
-    const leave = await prisma.absence.update({
-      where: { id: parseInt(id) },
-      data: { status, refusalComment },
-    });
-    res.json(leave);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+export const reviewLeaveRequest = async (req, res) => {
+  const { id } = req.params;
+  const { status, reviewedById, reviewNotes, reviewedByName } = req.body;
 
-// Delete leave
-const deleteLeave = async (req, res) => {
-  try {
-    const { id } = req.params;
-    await prisma.absence.delete({
-      where: { id: parseInt(id) },
-    });
-    res.json({ message: "Leave deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status" });
   }
-};
 
-module.exports = {
-  getAllLeaves,
-  createLeave,
-  updateLeave,
-  deleteLeave,
+  const updated = await prisma.leaveRequest.update({
+    where: { id },
+    data: {
+      status,
+      reviewedById,
+      reviewedByName,
+      reviewNotes,
+      reviewedAt: new Date(),
+    },
+  });
+
+  res.json(updated);
 };

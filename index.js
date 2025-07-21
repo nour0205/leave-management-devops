@@ -1,17 +1,10 @@
 const express = require("express");
 const app = express();
 
-const leaveRoutes = require("./dashboard/routes/leaveRoutes");
-
+const authRoutes = require("./dashboard/routes/authRoute");
 const userRoutes = require("./dashboard/routes/userRoutes");
-
-const teamRoutes = require("./dashboard/routes/teamRoutes");
-
+const leaveRoutes = require("./dashboard/routes/leaveRoutes");
 const notificationRoutes = require("./dashboard/routes/notificationRoutes");
-
-const managerRoutes = require("./dashboard/routes/managerRoutes");
-
-const roleRoutes = require("./dashboard/routes/roleRoutes"); // for /roles
 
 const path = require("path");
 
@@ -29,12 +22,10 @@ if (process.env.NODE_ENV !== "test") {
 }
 app.use(express.json());
 
-app.use("/api/leaves", leaveRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/teams", teamRoutes);
+app.use("/api/leaves", leaveRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/manager", managerRoutes);
-app.use("/api/roles", roleRoutes);
 
 const frontendPath = path.join(__dirname, "public");
 

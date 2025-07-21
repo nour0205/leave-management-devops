@@ -23,7 +23,7 @@ export function Layout({ children }: LayoutProps) {
               <SidebarTrigger />
               <div>
                 <h1 className="text-xl font-semibold text-foreground">
-                  HR Management System
+                   Sopra HR Leave Management System
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   Welcome back, {currentUser?.name}
