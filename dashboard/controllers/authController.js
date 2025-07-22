@@ -1,7 +1,7 @@
-import { prisma } from "../prisma/prisma.js";
-import jwt from "jsonwebtoken";
+const { prisma } = require("../../prisma/prisma");
+const jwt = require("jsonwebtoken");
 
-export const login = async (req, res) => {
+exports.login = async (req, res) => {
   const { email } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });

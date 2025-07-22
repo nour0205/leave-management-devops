@@ -1,9 +1,9 @@
-import express from "express";
-import {
+const express = require("express");
+const {
   getAllLeaveRequests,
   submitLeaveRequest,
   reviewLeaveRequest,
-} from "../controllers/leaveController.js";
+} = require("../controllers/leaveController");
 
 const router = express.Router();
 
@@ -11,4 +11,4 @@ router.get("/", getAllLeaveRequests);
 router.post("/", submitLeaveRequest);
 router.patch("/:id/review", reviewLeaveRequest);
 
-export default router;
+module.exports = router;

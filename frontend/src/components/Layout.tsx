@@ -34,24 +34,8 @@ export function Layout({ children }: LayoutProps) {
             {/* Role Switch (Demo purposes) */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Switch Role:</span>
-              <Button
-                variant={currentUser?.role === 'employee' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => switchRole('employee')}
-                className="gap-2"
-              >
-                <UserCheck className="h-4 w-4" />
-                Employee
-              </Button>
-              <Button
-                variant={currentUser?.role === 'manager' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => switchRole('manager')}
-                className="gap-2"
-              >
-                <UserCog className="h-4 w-4" />
-                Manager
-              </Button>
+              <p className="text-sm text-muted-foreground">Role: {currentUser?.role}</p>
+
             </div>
           </header>
 

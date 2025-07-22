@@ -1,7 +1,9 @@
 const express = require("express");
 const app = express();
 
-const authRoutes = require("./dashboard/routes/authRoute");
+require("dotenv").config();
+
+const authRoutes = require("./dashboard/routes/authRoutes");
 const userRoutes = require("./dashboard/routes/userRoutes");
 const leaveRoutes = require("./dashboard/routes/leaveRoutes");
 const notificationRoutes = require("./dashboard/routes/notificationRoutes");

@@ -1,7 +1,12 @@
-import { PrismaClient } from '@prisma/client';
+const { PrismaClient } = require("@prisma/client");
+const bcrypt = require('bcrypt');
+
+
 const prisma = new PrismaClient();
 
 async function main() {
+  const password = await bcrypt.hash('mypassword123', 10); // shared password for all users
+
   // 🧑‍💼 Create Users
   const manager = await prisma.user.create({
     data: {
@@ -12,6 +17,7 @@ async function main() {
       department: 'Payroll',
       leaveBalance: 22,
       totalLeaves: 30,
+      password: password,
     },
   });
 
@@ -24,6 +30,7 @@ async function main() {
       department: 'IT',
       leaveBalance: 14,
       totalLeaves: 25,
+      password: password,
     },
   });
 
@@ -36,6 +43,7 @@ async function main() {
       department: 'Customer Support',
       leaveBalance: 18,
       totalLeaves: 25,
+      password: password,
     },
   });
 
@@ -83,7 +91,7 @@ async function main() {
     ],
   });
 
-  console.log('✅ Sample data inserted for Sopra HR Tunisia.');
+  console.log('✅ Sample data inserted for Sopra HR Tunisia with secure passwords.');
 }
 
 main()

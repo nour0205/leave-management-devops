@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HRProvider } from "./contexts/HRContext";
 import { Layout } from "./components/Layout";
+import { LoginPage } from "./components/LoginPage";
+import { PrivateRoute } from "./components/PrivateRoute";
 import Dashboard from "./pages/Dashboard";
 import RequestLeave from "./pages/RequestLeave";
 import Approvals from "./pages/Approvals";
@@ -19,16 +21,60 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/request-leave" element={<RequestLeave />} />
-              <Route path="/approvals" element={<Approvals />} />
-              <Route path="/my-requests" element={<Dashboard />} />
-              <Route path="/team" element={<Dashboard />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route 
+              path="/" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/request-leave" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <RequestLeave />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/approvals" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Approvals />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/my-requests" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route 
+              path="/team" 
+              element={
+                <PrivateRoute>
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
+                </PrivateRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </BrowserRouter>
       </HRProvider>
     </TooltipProvider>

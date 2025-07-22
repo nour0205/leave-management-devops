@@ -1,0 +1,67 @@
+
+    <!DOCTYPE html>
+    <div class="mermaid">
+      erDiagram
+User {
+	String id
+	String name
+	String email
+	String password
+	UserRole role
+	String department
+	Int leaveBalance
+	Int totalLeaves
+	LeaveRequest leaveRequests
+	LeaveRequest reviews
+	Notification notifications
+	AuditLog auditLogs
+	DateTime createdAt
+}
+LeaveRequest {
+	String id
+	String employeeId
+	String employeeName
+	DateTime startDate
+	DateTime endDate
+	String reason
+	LeaveStatus status
+	DateTime requestedAt
+	DateTime reviewedAt
+	String reviewedById
+	String reviewedByName
+	String reviewNotes
+	Attachment attachments
+}
+LeaveRequest }o--|| User : employee
+LeaveRequest }o--o| User : reviewedBy
+Attachment {
+	String id
+	String leaveRequestId
+	String fileUrl
+	DateTime uploadedAt
+}
+Attachment }o--|| LeaveRequest : leaveRequest
+Notification {
+	String id
+	String userId
+	String message
+	Boolean read
+	DateTime createdAt
+}
+Notification }o--|| User : user
+AuditLog {
+	String id
+	String userId
+	String action
+	String targetId
+	String details
+	DateTime createdAt
+}
+AuditLog }o--|| User : user
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({ startOnLoad: true });
+    </script>
+  

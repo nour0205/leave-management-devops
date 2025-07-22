@@ -1,12 +1,12 @@
-import express from "express";
-import {
+const express = require("express");
+const {
   getUserNotifications,
   markAsRead,
-} from "../controllers/notificationController.js";
+} = require("../controllers/notificationController");
 
 const router = express.Router();
 
 router.get("/:userId", getUserNotifications);
 router.patch("/:id/read", markAsRead);
 
-export default router;
+module.exports = router;

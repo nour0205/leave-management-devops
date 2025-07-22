@@ -27,6 +27,9 @@ export interface LeaveRequest {
 export interface HRContextType {
   currentUser: User | null;
   leaveRequests: LeaveRequest[];
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => void;
   switchRole: (role: UserRole) => void;
   submitLeaveRequest: (request: Omit<LeaveRequest, 'id' | 'employeeId' | 'employeeName' | 'status' | 'requestedAt'>) => void;
   reviewLeaveRequest: (requestId: string, status: 'approved' | 'rejected', notes?: string) => void;

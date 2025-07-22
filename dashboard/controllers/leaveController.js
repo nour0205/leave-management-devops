@@ -1,6 +1,6 @@
-import { prisma } from "../prisma/prisma.js";
+const { prisma } = require("../../prisma/prisma");
 
-export const getAllLeaveRequests = async (_req, res) => {
+exports.getAllLeaveRequests = async (_req, res) => {
   const requests = await prisma.leaveRequest.findMany({
     include: {
       employee: true,
@@ -10,7 +10,7 @@ export const getAllLeaveRequests = async (_req, res) => {
   res.json(requests);
 };
 
-export const submitLeaveRequest = async (req, res) => {
+exports.submitLeaveRequest = async (req, res) => {
   const { employeeId, employeeName, startDate, endDate, reason } = req.body;
 
   const newLeave = await prisma.leaveRequest.create({
@@ -26,7 +26,7 @@ export const submitLeaveRequest = async (req, res) => {
   res.status(201).json(newLeave);
 };
 
-export const reviewLeaveRequest = async (req, res) => {
+exports.reviewLeaveRequest = async (req, res) => {
   const { id } = req.params;
   const { status, reviewedById, reviewNotes, reviewedByName } = req.body;
 

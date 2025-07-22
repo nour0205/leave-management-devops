@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-  "start": "npx prisma migrate deploy && node index.js",
-  "test": "jest --coverage --reporters=default --reporters=jest-junit"
-},
+    "start": "npx prisma migrate deploy && node index.js",
+    "test": "jest --coverage --reporters=default --reporters=jest-junit"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.11.1",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
@@ -25,6 +26,7 @@
     "jest-junit": "^16.0.0",
     "jest-sonar": "^0.2.16",
     "prisma": "^6.11.1",
+    "prisma-erd": "^0.1.1",
     "supertest": "^7.1.1",
     "ts-node": "^10.9.2"
   },
@@ -32,13 +34,19 @@
     "outputDirectory": "reports",
     "outputName": "junit.xml"
   },
- "jest": {
-  "reporters": [
-    "default",
-    ["jest-junit", { "outputDirectory": "reports", "outputName": "junit.xml" }]
-  ]
-},
-"jestSonar": {
-  "reportFile": "reports/sonar-report.xml"
-}
+  "jest": {
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "reports",
+          "outputName": "junit.xml"
+        }
+      ]
+    ]
+  },
+  "jestSonar": {
+    "reportFile": "reports/sonar-report.xml"
+  }
 }
