@@ -98,20 +98,19 @@ stage('Push Image to Docker Hub') {
                 bat 'docker-compose up -d --build'
             }
         }
-
 stage('Run Prisma Migrate') {
   steps {
     powershell '''
-Write-Host "🔄 Waiting for PostgreSQL container to become healthy..."
+Write-Host "🔄 Waiting for PostgreSQL and Web containers to be ready..."
 
 $maxRetries = 10
 $waitSeconds = 3
-$attempt = 1
 
-# ✅ 1. Wait for PostgreSQL to be healthy
+# ✅ 1. Wait for PostgreSQL container to be healthy
+$attempt = 1
 while ($attempt -le $maxRetries) {
-    $health = docker inspect --format="{{.State.Health.Status}}" myapppipeline-postgres-1 2>$null
-    if ($health -eq "healthy") {
+    $pgHealth = docker inspect --format="{{.State.Health.Status}}" myapppipeline-postgres-1 2>$null
+    if ($pgHealth -eq "healthy") {
         Write-Host "✅ PostgreSQL is healthy!"
         break
     }
@@ -119,17 +118,16 @@ while ($attempt -le $maxRetries) {
     Start-Sleep -Seconds $waitSeconds
     $attempt++
 }
-
 if ($attempt -gt $maxRetries) {
     Write-Host "❌ PostgreSQL did not become healthy after $maxRetries attempts."
     exit 1
 }
 
-# ✅ 2. Wait for Web container to be running (Prisma needs it!)
+# ✅ 2. Wait for Web container to be running
 $attempt = 1
 while ($attempt -le $maxRetries) {
-    $state = docker inspect --format="{{.State.Running}}" myapppipeline-web-1 2>$null
-    if ($state -eq "true") {
+    $webRunning = docker inspect --format="{{.State.Running}}" myapppipeline-web-1 2>$null
+    if ($webRunning -eq "true") {
         Write-Host "✅ Web container is running!"
         break
     }
@@ -137,13 +135,25 @@ while ($attempt -le $maxRetries) {
     Start-Sleep -Seconds $waitSeconds
     $attempt++
 }
-
 if ($attempt -gt $maxRetries) {
     Write-Host "❌ Web container did not start in time."
     exit 1
 }
 
-# ✅ 3. Run Prisma migrate inside web container
+# ✅ 3. Optional: Check if web container is healthy (if healthcheck is defined)
+try {
+    $webHealth = docker inspect --format="{{.State.Health.Status}}" myapppipeline-web-1 2>$null
+    if ($webHealth -ne "healthy") {
+        Write-Host "❌ Web container is not healthy (status: $webHealth)."
+        exit 1
+    } else {
+        Write-Host "✅ Web container is healthy!"
+    }
+} catch {
+    Write-Host "⚠️ Web container does not have a healthcheck defined. Skipping health check..."
+}
+
+# ✅ 4. Run Prisma migration
 Write-Host "🚀 Running Prisma Migrate Deploy..."
 docker exec myapppipeline-web-1 npx prisma migrate deploy
 '''
