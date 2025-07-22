@@ -1,27 +1,56 @@
 const request = require("supertest");
 const app = require("../index");
 
-jest.mock("../dashboard/controllers/userController", () => ({
-  getAllUsers: (req, res) => {
-    res.status(200).json([{ id: "1", name: "Zied" }]);
+jest.mock("../../prisma/prisma", () => ({
+  prisma: {
+    user: {
+      findMany: jest.fn(),
+      findUnique: jest.fn(),
+    },
   },
-  createUser: jest.fn(),
-  updateUser: jest.fn(),
-  deleteUser: jest.fn(),
 }));
 
-jest.mock("../dashboard/middleware/authMiddleware", () => ({
-  verifyToken: (req, res, next) => next(),
-  requireRole: (role) => (req, res, next) => next(),
-}));
+const { prisma } = require("../../prisma/prisma");
 
-describe("GET /users", () => {
+// ✅ GET /api/users
+describe("GET /api/users", () => {
   it("should return a list of users", async () => {
+    prisma.user.findMany.mockResolvedValue([
+      { id: "1", name: "Zied" },
+      { id: "2", name: "Nour" },
+    ]);
+
     const res = await request(app).get("/api/users");
 
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
-    expect(res.body[0]).toHaveProperty("id", "1");
-    expect(res.body[0]).toHaveProperty("name", "Zied");
+    expect(res.body).toHaveLength(2);
+    expect(res.body[0]).toEqual({ id: "1", name: "Zied" });
+    expect(prisma.user.findMany).toHaveBeenCalled();
+  });
+});
+
+// ✅ GET /api/users/:id
+describe("GET /api/users/:id", () => {
+  it("should return a user by ID", async () => {
+    prisma.user.findUnique.mockResolvedValue({ id: "1", name: "Zied" });
+
+    const res = await request(app).get("/api/users/1");
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toEqual({ id: "1", name: "Zied" });
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({ where: { id: "1" } });
+  });
+
+  it("should return 404 if user not found", async () => {
+    prisma.user.findUnique.mockResolvedValue(null);
+
+    const res = await request(app).get("/api/users/999");
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body).toHaveProperty("error", "User not found");
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { id: "999" },
+    });
   });
 });
