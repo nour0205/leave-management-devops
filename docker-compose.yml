@@ -13,6 +13,12 @@ services:
       - mongo
       - postgres
 
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   mongo:
     image: mongo:latest
     ports:
