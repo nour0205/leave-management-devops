@@ -1,7 +1,7 @@
 const request = require("supertest");
 const app = require("../index");
 
-jest.mock("../../prisma/prisma", () => ({
+jest.mock("../prisma/prisma", () => ({
   prisma: {
     user: {
       findMany: jest.fn(),
@@ -10,7 +10,7 @@ jest.mock("../../prisma/prisma", () => ({
   },
 }));
 
-const { prisma } = require("../../prisma/prisma");
+const { prisma } = require("../prisma/prisma");
 
 // ✅ GET /api/users
 describe("GET /api/users", () => {
