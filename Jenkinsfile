@@ -164,15 +164,49 @@ docker exec myapppipeline-web-1 npx prisma migrate deploy
 
 
 
-        stage('Code Quality - SonarQube') {
-            steps {
-                withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
-                    bat 'npm test'
-                    bat '"C:\\Program Files\\sonar-scanner-7.1.0.4889-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.token=%SONAR_TOKEN% -Dsonar.projectBaseDir=."'
+       stage('Code Quality - SonarQube') {
+    steps {
+        withCredentials([string(credentialsId: 'jenkins-sonar', variable: 'SONAR_TOKEN')]) {
+            // Wait for SonarQube to be healthy
+            powershell '''
+Write-Host "🔄 Waiting for SonarQube to be healthy..."
 
-                }
-            }
+$maxRetries = 10
+$retryDelay = 5
+
+for ($i = 1; $i -le $maxRetries; $i++) {
+    try {
+        $response = Invoke-RestMethod -Uri "http://sonarqube:9000/api/system/health" -UseBasicParsing
+        if ($response.status -eq "GREEN") {
+            Write-Host "✅ SonarQube is healthy!"
+            break
+        } else {
+            Write-Host "⏳ Attempt $i: SonarQube status is $($response.status)"
         }
+    } catch {
+        Write-Host "⏳ Attempt $i: SonarQube not reachable yet."
+    }
+    Start-Sleep -Seconds $retryDelay
+}
+
+if ($i -gt $maxRetries) {
+    Write-Host "❌ SonarQube did not become healthy in time."
+    exit 1
+}
+'''
+
+            // Run the tests
+            bat 'npm test'
+
+            // Run SonarQube scanner with correct internal host
+            bat '"C:\\Program Files\\sonar-scanner-7.1.0.4889-windows-x64\\bin\\sonar-scanner.bat" ' +
+                '-Dsonar.token=%SONAR_TOKEN% ' +
+                '-Dsonar.projectBaseDir=. ' +
+                '-Dsonar.host.url=http://sonarqube:9000'
+        }
+    }
+}
+
     }
 
     post {
