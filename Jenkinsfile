@@ -181,10 +181,10 @@ for ($i = 1; $i -le $maxRetries; $i++) {
             Write-Host "✅ SonarQube is healthy!"
             break
         } else {
-            Write-Host "⏳ Attempt $i: SonarQube status is $($response.status)"
+            Write-Host ("⏳ Attempt {0}: SonarQube status is {1}" -f $i, $response.status)
         }
     } catch {
-        Write-Host "⏳ Attempt $i: SonarQube not reachable yet."
+        Write-Host ("⏳ Attempt {0}: SonarQube not reachable yet." -f $i)
     }
     Start-Sleep -Seconds $retryDelay
 }
@@ -193,6 +193,7 @@ if ($i -gt $maxRetries) {
     Write-Host "❌ SonarQube did not become healthy in time."
     exit 1
 }
+
 '''
 
             // Run the tests
