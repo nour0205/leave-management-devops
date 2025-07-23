@@ -59,10 +59,10 @@ pipeline {
                 }
             }
         }
-      stage('SonarCloud Analysis') {
+     stage('SonarCloud Analysis') {
     steps {
         withCredentials([string(credentialsId: 'sonarcloud-token', variable: 'SONAR_TOKEN')]) {
-            withEnv(["SONAR_TOKEN=${SONAR_TOKEN}"]) {
+            withEnv(["SONAR_TOKEN=$SONAR_TOKEN"]) {
                 bat 'sonar-scanner'
             }
         }
