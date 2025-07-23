@@ -59,6 +59,15 @@ pipeline {
                 }
             }
         }
+        stage('SonarCloud Analysis') {
+    withCredentials([string(credentialsId: 'sonarcloud-token', variable: 'SONAR_TOKEN')]) {
+        bat """
+            sonar-scanner ^
+            -Dsonar.login=%SONAR_TOKEN%
+        """
+    }
+}
+
 
         stage('Build Frontend') {
             steps {
