@@ -1,5 +1,12 @@
 const express = require("express");
 const app = express();
+const client = require("prom-client");
+
+const {
+  loginAttempts,
+  loginFailures,
+  loginSuccesses,
+} = require("./dashboard/metrics/loginMetrics");
 
 require("dotenv").config();
 
@@ -31,6 +38,15 @@ app.use("/api/notifications", notificationRoutes);
 
 const protectedRoutes = require("./dashboard/routes/protected");
 app.use("/api/protected", protectedRoutes);
+
+// Collect default system metrics (CPU, memory, etc.)
+client.collectDefaultMetrics();
+
+// Expose metrics at /metrics for Prometheus
+app.get("/metrics", async (_req, res) => {
+  res.set("Content-Type", client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 const frontendPath = path.join(__dirname, "public");
 
