@@ -1,6 +1,6 @@
-import jwt from "jsonwebtoken";
+const jwt = require("jsonwebtoken");
 
-export const authenticate = (req, res, next) => {
+const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: "Missing token" });
 
@@ -14,9 +14,11 @@ export const authenticate = (req, res, next) => {
   }
 };
 
-export const authorize = (roles) => (req, res, next) => {
+const authorize = (roles) => (req, res, next) => {
   if (!roles.includes(req.user.role)) {
     return res.status(403).json({ error: "Access denied" });
   }
   next();
 };
+
+module.exports = { authenticate, authorize };

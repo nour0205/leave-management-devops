@@ -22,12 +22,15 @@
     "react": "^19.1.0"
   },
   "devDependencies": {
-    "jest": "^30.0.4",
+    "@types/jest": "^30.0.0",
+    "@types/supertest": "^6.0.3",
+    "jest": "^30.0.5",
     "jest-junit": "^16.0.0",
     "jest-sonar": "^0.2.16",
     "prisma": "^6.11.1",
     "prisma-erd": "^0.1.1",
-    "supertest": "^7.1.1",
+    "supertest": "^7.1.4",
+    "ts-jest": "^29.4.0",
     "ts-node": "^10.9.2"
   },
   "jest-junit": {

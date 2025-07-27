@@ -29,6 +29,9 @@ app.use("/api/users", userRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/notifications", notificationRoutes);
 
+const protectedRoutes = require("./dashboard/routes/protected");
+app.use("/api/protected", protectedRoutes);
+
 const frontendPath = path.join(__dirname, "public");
 
 if (process.env.NODE_ENV !== "test") {

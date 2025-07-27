@@ -13,6 +13,10 @@ exports.getAllLeaveRequests = async (_req, res) => {
 exports.submitLeaveRequest = async (req, res) => {
   const { employeeId, employeeName, startDate, endDate, reason } = req.body;
 
+  if (!employeeId || !employeeName || !startDate || !endDate || !reason) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
   const newLeave = await prisma.leaveRequest.create({
     data: {
       employeeId,
