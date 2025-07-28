@@ -14,7 +14,7 @@ pipeline {
             steps {
                 bat '''
                     echo [CLEANUP] Stopping and removing previous Docker Compose containers...
-                    docker compose down -v || exit 0
+                    docker compose down  || exit 0
 
                     echo [CLEANUP] Forcibly removing specific containers if still running...
                     for /f %%i in ('docker ps -a -q --filter "name=myapppipeline-web-1"') do docker rm -f %%i
@@ -170,7 +170,17 @@ try {
 # ✅ 4. Run Prisma migration
 Write-Host "🚀 Running Prisma Migrate Deploy..."
 docker exec myapppipeline-web-1 npx prisma migrate deploy
+
+
+
+
+# 🌱 Run Prisma Seed
+Write-Host "🌱 Running Prisma Seed..."
+docker exec myapppipeline-web-1 npx prisma db seed
+
 '''
+
+
   }
 }
 

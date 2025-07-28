@@ -52,5 +52,10 @@
   },
   "jestSonar": {
     "reportFile": "reports/sonar-report.xml"
-  }
+  },
+  "prisma": {
+  "seed": "node prisma/seed.js"
+}
+
+
 }
