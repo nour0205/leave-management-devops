@@ -54,7 +54,7 @@
     "reportFile": "reports/sonar-report.xml"
   },
   "prisma": {
-  "seed": "node prisma/seed.js"
+  "seed": "node prisma/seed.ts"
 }
 
 
