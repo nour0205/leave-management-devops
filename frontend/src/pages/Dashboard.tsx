@@ -110,30 +110,45 @@ export default function Dashboard() {
         <CardContent>
           {recentRequests.length > 0 ? (
             <div className="space-y-4">
-              {recentRequests.map((request) => (
-                <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    {getStatusIcon(request.status)}
-                    <div>
-                      <div className="font-medium">
-                        {currentUser.role === 'manager' ? request.employeeName : 'Your Request'}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {format(request.startDate, 'MMM dd')} - {format(request.endDate, 'MMM dd, yyyy')}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {request.reason}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right space-y-2">
-                    {getStatusBadge(request.status)}
-                    <div className="text-xs text-muted-foreground">
-                      {format(request.requestedAt, 'MMM dd, yyyy')}
-                    </div>
-                  </div>
-                </div>
-              ))}
+             {recentRequests.map((request) => (
+  <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+    <div className="flex items-center gap-4">
+      {getStatusIcon(request.status)}
+      <div>
+        <div className="font-medium">
+          {currentUser.role === 'manager' ? request.employeeName : 'Your Request'}
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {format(request.startDate, 'MMM dd')} - {format(request.endDate, 'MMM dd, yyyy')}
+        </div>
+        <div className="text-xs text-muted-foreground mt-1">
+          {request.reason}
+        </div>
+
+        {/* ✅ Attachments block should be nested here */}
+        {request.attachments && request.attachments.length > 0 && (
+          <ul className="mt-1 list-disc pl-5 text-xs text-blue-600">
+            {request.attachments.map((att, i) => (
+              <li key={i}>
+                <a href={att.fileUrl} target="_blank" rel="noopener noreferrer">
+                  Attachment #{i + 1}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+
+    <div className="text-right space-y-2">
+      {getStatusBadge(request.status)}
+      <div className="text-xs text-muted-foreground">
+        {format(request.requestedAt, 'MMM dd, yyyy')}
+      </div>
+    </div>
+  </div>
+))}
+
             </div>
           ) : (
             <div className="text-center py-8">

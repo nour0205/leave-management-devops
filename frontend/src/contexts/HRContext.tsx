@@ -94,6 +94,24 @@ export function HRProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const refreshLeaves = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch('/api/leaves', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) throw new Error("Failed to fetch leave requests");
+    
+    const updatedLeaves = await res.json();
+    setLeaveRequests(updatedLeaves);
+  } catch (err) {
+    console.error("refreshLeaves error:", err);
+  }
+};
+
+
   return (
     <HRContext.Provider value={{
       currentUser,
@@ -103,7 +121,8 @@ export function HRProvider({ children }: { children: React.ReactNode }) {
       logout,
       switchRole,
       submitLeaveRequest,
-      reviewLeaveRequest
+      reviewLeaveRequest,
+      refreshLeaves
     }}>
       {children}
     </HRContext.Provider>

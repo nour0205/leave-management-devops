@@ -173,6 +173,27 @@ export default function Approvals() {
                       </div>
                     </div>
 
+                    {request.attachments && request.attachments.length > 0 && (
+  <div className="mt-3 space-y-1">
+    <Label className="text-xs text-muted-foreground">ATTACHMENTS</Label>
+    <ul className="list-disc pl-5 text-sm">
+      {request.attachments.map((att, i) => (
+        <li key={i}>
+          <a
+            href={att.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            Attachment #{i + 1}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+)}
+
+
                     <div className="flex flex-col gap-2">
                       {getStatusBadge(request.status)}
                     </div>

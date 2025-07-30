@@ -10,6 +10,12 @@ export interface User {
   totalLeaves: number;
 }
 
+export interface Attachment {
+  id: string;
+  fileUrl: string;
+  uploadedAt: Date;
+}
+
 export interface LeaveRequest {
   id: string;
   employeeId: string;
@@ -22,6 +28,7 @@ export interface LeaveRequest {
   reviewedAt?: Date;
   reviewedBy?: string;
   reviewNotes?: string;
+  attachments?: Attachment[]; 
 }
 
 export interface HRContextType {
@@ -33,4 +40,5 @@ export interface HRContextType {
   switchRole: (role: UserRole) => void;
   submitLeaveRequest: (request: Omit<LeaveRequest, 'id' | 'employeeId' | 'employeeName' | 'status' | 'requestedAt'>) => void;
   reviewLeaveRequest: (requestId: string, status: 'approved' | 'rejected', notes?: string) => void;
+   refreshLeaves: () => Promise<void>;
 }
