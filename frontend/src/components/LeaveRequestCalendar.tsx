@@ -66,47 +66,62 @@ export function LeaveRequestCalendar() {
     setIsSubmitting(true);
 
     try {
-      const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
+  const token = localStorage.getItem("token");
+  const sortedDates = [...selectedDates].sort((a, b) => a.getTime() - b.getTime());
 
-      // Submit leave request
-      const res = await axios.post("/api/leaves", {
-        employeeId: currentUser.id,
-        employeeName: currentUser.name,
-        startDate: sortedDates[0],
-        endDate: sortedDates[sortedDates.length - 1],
-        reason: reason.trim()
-      });
-
-      const leaveId = res.data.id;
-
-      // Upload file (if any)
-      if (file) {
-        const formData = new FormData();
-        formData.append("file", file);
-        await axios.post(`/api/leaves/${leaveId}/attachments`, formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-      }
-
-      toast({
-        title: "Leave Request Submitted",
-        description: `Your request for ${leaveDays} day(s) was submitted successfully.`,
-      });
-
-      setSelectedDates([]);
-      setReason("");
-      setFile(null);
-      refreshLeaves(); // Refresh dashboard or request list
-    } catch (error) {
-      console.error("Submit error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to submit leave request.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
+  // ✅ Submit leave request with Authorization header
+  const res = await axios.post(
+    "/api/leaves",
+    {
+      employeeId: currentUser.id,
+      employeeName: currentUser.name,
+      startDate: sortedDates[0],
+      endDate: sortedDates[sortedDates.length - 1],
+      reason: reason.trim(),
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     }
+  );
+
+  const leaveId = res.data.id;
+
+  // ✅ Upload file if present, also with Authorization header
+  if (file) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    await axios.post(`/api/leaves/${leaveId}/attachments`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  }
+
+  toast({
+    title: "Leave Request Submitted",
+    description: `Your request for ${calculateLeaveDays()} day(s) was submitted successfully.`,
+  });
+
+  // Reset form
+  setSelectedDates([]);
+  setReason("");
+  setFile(null);
+  refreshLeaves();
+} catch (error) {
+  console.error("Submit error:", error);
+  toast({
+    title: "Error",
+    description: "Failed to submit leave request.",
+    variant: "destructive",
+  });
+} finally {
+  setIsSubmitting(false);
+}
+
   };
 
   const leaveDays = calculateLeaveDays();

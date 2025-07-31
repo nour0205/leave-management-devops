@@ -7,41 +7,60 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  employee
+  manager
+  head_of_departement
+}
+
+enum LeaveStatus {
+  pending
+  approved
+  rejected
+}
+
 model User {
   id            String          @id @default(uuid())
   name          String
   email         String          @unique
-  password      String      
+  password      String
   role          UserRole
   department    String
   leaveBalance  Int             @default(0)
   totalLeaves   Int             @default(20)
+  createdAt     DateTime        @default(now())
 
-  leaveRequests LeaveRequest[]  @relation("EmployeeRequests")
-  reviews        LeaveRequest[] @relation("ManagerReviews") // ✅ FIXED: removed fields + references
+  // Manager Relationships
+  managerId     String?
+  manager       User?           @relation("EmployeeManager", fields: [managerId], references: [id])
+  employees     User[]          @relation("EmployeeManager")
 
+  // Leave Request Relationships
+  leaveRequests LeaveRequest[]  @relation("EmployeeRequests") // requests made by this user
+  reviews       LeaveRequest[]  @relation("ManagerReviews")   // requests this user reviewed
+
+  // Other Relationships
   notifications Notification[]
   auditLogs     AuditLog[]
-
-  createdAt     DateTime        @default(now())
 }
 
 model LeaveRequest {
-  id              String    @id @default(uuid())
-  employee        User      @relation("EmployeeRequests", fields: [employeeId], references: [id])
+  id              String       @id @default(uuid())
   employeeId      String
+  employee        User         @relation("EmployeeRequests", fields: [employeeId], references: [id])
   employeeName    String
 
   startDate       DateTime
   endDate         DateTime
   reason          String
-  status          LeaveStatus   @default(pending)
-  requestedAt     DateTime      @default(now())
+  status          LeaveStatus  @default(pending)
+  requestedAt     DateTime     @default(now())
 
-  reviewedAt      DateTime?
-  reviewedBy      User?         @relation("ManagerReviews", fields: [reviewedById], references: [id])
+  // Review Info
   reviewedById    String?
+  reviewedBy      User?        @relation("ManagerReviews", fields: [reviewedById], references: [id])
   reviewedByName  String?
+  reviewedAt      DateTime?
   reviewNotes     String?
 
   attachments     Attachment[]
@@ -49,38 +68,30 @@ model LeaveRequest {
 
 model Attachment {
   id              String       @id @default(uuid())
-  leaveRequest    LeaveRequest @relation(fields: [leaveRequestId], references: [id])
-  leaveRequestId  String
   fileUrl         String
   uploadedAt      DateTime     @default(now())
+
+  leaveRequestId  String
+  leaveRequest    LeaveRequest @relation(fields: [leaveRequestId], references: [id])
 }
 
 model Notification {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model AuditLog {
   id        String   @id @default(uuid())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    String
   action    String
   targetId  String?
   details   String?
   createdAt DateTime @default(now())
-}
 
-enum UserRole {
-  employee
-  manager
-}
-
-enum LeaveStatus {
-  pending
-  approved
-  rejected
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }

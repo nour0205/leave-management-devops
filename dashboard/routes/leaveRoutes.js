@@ -13,14 +13,15 @@ const upload = require("../middleware/upload");
 
 const router = express.Router();
 
-router.get("/", getAllLeaveRequests);
-router.post("/", submitLeaveRequest);
-router.patch("/:id/review", reviewLeaveRequest);
-
-// NEW 📎 Upload file for a leave request
-router.post("/:id/attachments", upload.single("file"), uploadAttachment);
-
-// Protect with middleware
-router.get("/audit-logs", authenticate, authorize(["manager"]), getAuditLogs);
+router.get("/", authenticate, getAllLeaveRequests); // ✅ protect it
+router.post("/", authenticate, submitLeaveRequest); // ✅ protect it
+router.patch("/:id/review", authenticate, reviewLeaveRequest); // ✅ protect it
+router.post(
+  "/:id/attachments",
+  authenticate,
+  upload.single("file"),
+  uploadAttachment
+); // ✅ protect it
+router.get("/audit-logs", authenticate, authorize(["manager"]), getAuditLogs); // already good
 
 module.exports = router;

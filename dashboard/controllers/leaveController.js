@@ -23,15 +23,77 @@ async function createNotification(userId, message) {
 }
 
 // === GET all leave requests ===
-exports.getAllLeaveRequests = async (_req, res) => {
+// === GET leave requests based on role ===
+exports.getAllLeaveRequests = async (req, res) => {
+  const { id: userId, role } = req.user; // Assumes authentication middleware sets req.user
+
   try {
-    const requests = await prisma.leaveRequest.findMany({
-      include: {
-        employee: true,
-        reviewedBy: true,
-        attachments: true,
-      },
-    });
+    let requests = [];
+
+    if (role === "employee") {
+      // 🔒 Employees are not allowed to view leave requests in this route
+      requests = []; // Optional: you could also return a 403 or an empty list
+    } else if (role === "manager") {
+      // ✅ Managers only see leave requests from their employees
+      const employees = await prisma.user.findMany({
+        where: {
+          managerId: userId,
+          role: "employee",
+        },
+        select: { id: true },
+      });
+
+      const employeeIds = employees.map((emp) => emp.id);
+
+      requests = await prisma.leaveRequest.findMany({
+        where: {
+          employeeId: { in: employeeIds },
+        },
+        include: {
+          employee: true,
+          reviewedBy: true,
+          attachments: true,
+        },
+        orderBy: { requestedAt: "desc" },
+      });
+    } else if (role === "head_of_departement") {
+      // ✅ Head of department sees requests from all managers they supervise
+      const supervisedManagers = await prisma.user.findMany({
+        where: {
+          managerId: userId,
+          role: "manager",
+        },
+        select: { id: true },
+      });
+
+      const managerIds = supervisedManagers.map((mgr) => mgr.id);
+
+      // Now find all leave requests submitted by these managers’ employees
+      const employees = await prisma.user.findMany({
+        where: {
+          managerId: { in: managerIds },
+          role: "employee",
+        },
+        select: { id: true },
+      });
+
+      const employeeIds = employees.map((emp) => emp.id);
+
+      requests = await prisma.leaveRequest.findMany({
+        where: {
+          employeeId: { in: employeeIds },
+        },
+        include: {
+          employee: true,
+          reviewedBy: true,
+          attachments: true,
+        },
+        orderBy: { requestedAt: "desc" },
+      });
+    } else {
+      return res.status(403).json({ error: "Unauthorized role" });
+    }
+
     res.json(requests);
   } catch (err) {
     console.error("❌ Error fetching leave requests:", err);
@@ -39,6 +101,7 @@ exports.getAllLeaveRequests = async (_req, res) => {
   }
 };
 
+// === POST submit a new leave request ===
 // === POST submit a new leave request ===
 exports.submitLeaveRequest = async (req, res) => {
   const { employeeId, employeeName, startDate, endDate, reason } = req.body;
@@ -48,6 +111,39 @@ exports.submitLeaveRequest = async (req, res) => {
   }
 
   try {
+    // Fetch employee's role and manager
+    const employee = await prisma.user.findUnique({
+      where: { id: employeeId },
+      select: {
+        id: true,
+        role: true,
+        managerId: true,
+        manager: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!employee) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+
+    if (!employee.managerId) {
+      return res
+        .status(400)
+        .json({ error: "This user has no manager assigned." });
+    }
+
+    // Prevent users from reviewing their own leave
+    if (employee.id === employee.managerId) {
+      return res
+        .status(400)
+        .json({ error: "Reviewer cannot be the same as submitter." });
+    }
+
+    // Create leave request with reviewer auto-assigned
     const newLeave = await prisma.leaveRequest.create({
       data: {
         employeeId,
@@ -55,6 +151,8 @@ exports.submitLeaveRequest = async (req, res) => {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         reason,
+        reviewedById: employee.managerId,
+        reviewedByName: employee.manager.name,
       },
     });
 
@@ -64,15 +162,24 @@ exports.submitLeaveRequest = async (req, res) => {
       newLeave.id,
       `Requested from ${startDate} to ${endDate}`
     );
+
+    await createNotification(
+      employee.managerId,
+      `📩 New leave request from ${employeeName}`
+    );
+
     await createNotification(
       employeeId,
-      "Your leave request has been submitted."
+      "✅ Your leave request has been submitted."
     );
 
     res.status(201).json(newLeave);
-  } catch (err) {
-    console.error("❌ Error submitting leave:", err);
-    res.status(500).json({ error: "Failed to submit leave request" });
+  } catch (error) {
+    console.error("🔴 Submit error:", {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
   }
 };
 
