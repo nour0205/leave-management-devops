@@ -152,3 +152,22 @@ exports.uploadAttachment = async (req, res) => {
     res.status(500).json({ error: "Failed to upload attachment" });
   }
 };
+// === GET audit logs (Managers only) ===
+exports.getAuditLogs = async (_req, res) => {
+  try {
+    const logs = await prisma.auditLog.findMany({
+      include: {
+        user: true,
+      },
+      orderBy: {
+        createdAt: "desc", // ✅ Fix here
+      },
+      take: 100,
+    });
+
+    res.json(logs);
+  } catch (err) {
+    console.error("❌ Error fetching audit logs:", err);
+    res.status(500).json({ error: "Failed to fetch audit logs" });
+  }
+};

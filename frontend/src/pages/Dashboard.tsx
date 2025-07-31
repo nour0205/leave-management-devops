@@ -2,8 +2,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LeaveBalanceCard } from "@/components/LeaveBalanceCard";
 import { useHR } from "@/contexts/HRContext";
 import { Badge } from "@/components/ui/badge";
-import { CalendarDays, CheckCircle, Clock, XCircle, Users, TrendingUp } from "lucide-react";
+import {
+  CalendarDays,
+  CheckCircle,
+  Clock,
+  XCircle,
+  Users,
+  TrendingUp,
+  FileText,
+} from "lucide-react";
 import { format } from "date-fns";
+import { Link } from "react-router-dom";
 
 export default function Dashboard() {
   const { currentUser, leaveRequests } = useHR();
@@ -11,14 +20,14 @@ export default function Dashboard() {
   if (!currentUser) return null;
 
   const userRequests = leaveRequests.filter(req => req.employeeId === currentUser.id);
-  const pendingRequests = leaveRequests.filter(req => req.status === 'pending');
+  const pendingRequests = leaveRequests.filter(req => req.status === "pending");
   const recentRequests = leaveRequests.slice(0, 5);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'approved':
+      case "approved":
         return <CheckCircle className="h-4 w-4 text-success" />;
-      case 'rejected':
+      case "rejected":
         return <XCircle className="h-4 w-4 text-destructive" />;
       default:
         return <Clock className="h-4 w-4 text-warning" />;
@@ -27,9 +36,9 @@ export default function Dashboard() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'approved':
+      case "approved":
         return <Badge className="bg-success/10 text-success border-success/20">Approved</Badge>;
-      case 'rejected':
+      case "rejected":
         return <Badge variant="destructive">Rejected</Badge>;
       default:
         return <Badge className="bg-warning/10 text-warning border-warning/20">Pending</Badge>;
@@ -44,17 +53,16 @@ export default function Dashboard() {
           Welcome back, {currentUser.name}!
         </h1>
         <p className="text-muted-foreground">
-          {currentUser.role === 'manager' 
-            ? 'Manage your team\'s leave requests and monitor department activity.'
-            : 'View your leave balance and manage your leave requests.'
-          }
+          {currentUser.role === "manager"
+            ? "Manage your team's leave requests and monitor department activity."
+            : "View your leave balance and manage your leave requests."}
         </p>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <LeaveBalanceCard />
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">My Requests</CardTitle>
@@ -62,13 +70,11 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{userRequests.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Total submitted
-            </p>
+            <p className="text-xs text-muted-foreground">Total submitted</p>
           </CardContent>
         </Card>
 
-        {currentUser.role === 'manager' && (
+        {currentUser.role === "manager" && (
           <>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -77,9 +83,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-warning">{pendingRequests.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Awaiting review
-                </p>
+                <p className="text-xs text-muted-foreground">Awaiting review</p>
               </CardContent>
             </Card>
 
@@ -90,14 +94,25 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">
-                  Active employees
-                </p>
+                <p className="text-xs text-muted-foreground">Active employees</p>
               </CardContent>
             </Card>
           </>
         )}
       </div>
+
+      {/* Link to Audit Logs (Only Managers) */}
+      {currentUser.role === "manager" && (
+        <div>
+          <Link
+            to="/audit-logs"
+            className="inline-flex items-center text-sm text-blue-600 hover:underline"
+          >
+            <FileText className="w-4 h-4 mr-1" />
+            View Audit Logs
+          </Link>
+        </div>
+      )}
 
       {/* Recent Activity */}
       <Card>
@@ -110,45 +125,54 @@ export default function Dashboard() {
         <CardContent>
           {recentRequests.length > 0 ? (
             <div className="space-y-4">
-             {recentRequests.map((request) => (
-  <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-    <div className="flex items-center gap-4">
-      {getStatusIcon(request.status)}
-      <div>
-        <div className="font-medium">
-          {currentUser.role === 'manager' ? request.employeeName : 'Your Request'}
-        </div>
-        <div className="text-sm text-muted-foreground">
-          {format(request.startDate, 'MMM dd')} - {format(request.endDate, 'MMM dd, yyyy')}
-        </div>
-        <div className="text-xs text-muted-foreground mt-1">
-          {request.reason}
-        </div>
+              {recentRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    {getStatusIcon(request.status)}
+                    <div>
+                      <div className="font-medium">
+                        {currentUser.role === "manager"
+                          ? request.employeeName
+                          : "Your Request"}
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {format(request.startDate, "MMM dd")} -{" "}
+                        {format(request.endDate, "MMM dd, yyyy")}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {request.reason}
+                      </div>
 
-        {/* ✅ Attachments block should be nested here */}
-        {request.attachments && request.attachments.length > 0 && (
-          <ul className="mt-1 list-disc pl-5 text-xs text-blue-600">
-            {request.attachments.map((att, i) => (
-              <li key={i}>
-                <a href={att.fileUrl} target="_blank" rel="noopener noreferrer">
-                  Attachment #{i + 1}
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+                      {/* Attachments */}
+                      {request.attachments && request.attachments.length > 0 && (
+                        <ul className="mt-1 list-disc pl-5 text-xs text-blue-600">
+                          {request.attachments.map((att, i) => (
+                            <li key={i}>
+                              <a
+                                href={att.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                Attachment #{i + 1}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
 
-    <div className="text-right space-y-2">
-      {getStatusBadge(request.status)}
-      <div className="text-xs text-muted-foreground">
-        {format(request.requestedAt, 'MMM dd, yyyy')}
-      </div>
-    </div>
-  </div>
-))}
-
+                  <div className="text-right space-y-2">
+                    {getStatusBadge(request.status)}
+                    <div className="text-xs text-muted-foreground">
+                      {format(request.requestedAt, "MMM dd, yyyy")}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <div className="text-center py-8">

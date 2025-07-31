@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import RequestLeave from "./pages/RequestLeave";
 import Approvals from "./pages/Approvals";
 import NotFound from "./pages/NotFound";
+import AuditLogs from "./pages/AuditLogs";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ const App = () => (
               } 
             />
             <Route path="*" element={<NotFound />} />
+            <Route path="/audit-logs" element={<AuditLogs />} />
           </Routes>
         </BrowserRouter>
       </HRProvider>
