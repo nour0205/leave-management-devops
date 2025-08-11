@@ -30,10 +30,11 @@ model User {
   totalLeaves   Int             @default(20)
   createdAt     DateTime        @default(now())
 
-  // Manager Relationships
+    // ✅ Required: enforce each employee has a manager
   managerId     String?
-  manager       User?           @relation("EmployeeManager", fields: [managerId], references: [id])
+  manager       User?            @relation("EmployeeManager", fields: [managerId], references: [id])
   employees     User[]          @relation("EmployeeManager")
+
 
   // Leave Request Relationships
   leaveRequests LeaveRequest[]  @relation("EmployeeRequests") // requests made by this user
