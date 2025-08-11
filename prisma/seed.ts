@@ -6,6 +6,23 @@ const prisma = new PrismaClient();
 async function main() {
   const password = await bcrypt.hash("mypassword123", 10);
 
+  // === SUPERADMIN (root user to satisfy managerId requirements) ===
+  const superadmin = await prisma.user.upsert({
+    where: { email: "superadmin@soprahr.tn" },
+    update: {},
+    create: {
+      id: "superadmin-tn-001",
+      name: "System Admin",
+      email: "superadmin@soprahr.tn",
+      role: "head_of_departement",
+      department: "Admin",
+      leaveBalance: 0,
+      totalLeaves: 0,
+      password,
+      managerId: "superadmin-tn-001", // self-reference to avoid null
+    },
+  });
+
   // === HEAD OF DEPARTMENT ===
   const chef = await prisma.user.upsert({
     where: { email: "mohamed.benhassen@soprahr.tn" },
@@ -19,6 +36,7 @@ async function main() {
       leaveBalance: 30,
       totalLeaves: 30,
       password,
+      managerId: superadmin.id,
     },
   });
 
@@ -31,7 +49,6 @@ async function main() {
   ];
 
   const managers = {};
-
   for (const mgr of managersData) {
     const manager = await prisma.user.upsert({
       where: { email: mgr.email },
@@ -45,7 +62,7 @@ async function main() {
         leaveBalance: 25,
         totalLeaves: 30,
         password,
-        managerId: chef.id, // 🔹 Assign to head of department
+        managerId: chef.id,
       },
     });
     managers[mgr.id] = manager;
@@ -66,7 +83,6 @@ async function main() {
   ];
 
   const employees = {};
-
   for (const emp of employeesData) {
     const employee = await prisma.user.upsert({
       where: { email: emp.email },
@@ -80,7 +96,7 @@ async function main() {
         leaveBalance: Math.floor(Math.random() * 10 + 15),
         totalLeaves: 25,
         password,
-        managerId: managers[emp.manager].id, // 🔹 Assign employee to their manager
+        managerId: managers[emp.manager].id,
       },
     });
     employees[emp.id] = employee;
@@ -126,9 +142,7 @@ async function main() {
         reviewedAt: new Date("2025-07-11"),
         reviewNotes: "Too short notice",
         attachments: {
-          create: [
-            { fileUrl: "/uploads/doctor-note.pdf" },
-          ],
+          create: [{ fileUrl: "/uploads/doctor-note.pdf" }],
         },
       },
     },
@@ -201,9 +215,7 @@ async function main() {
         status: "pending",
         requestedAt: new Date("2025-08-15"),
         attachments: {
-          create: [
-            { fileUrl: "/uploads/visa-application.jpg" },
-          ],
+          create: [{ fileUrl: "/uploads/visa-application.jpg" }],
         },
       },
     },
@@ -224,7 +236,7 @@ async function main() {
     });
   }
 
-  console.log("✅ Seeded: 1 head, 4 managers, 10 employees, 8 leave requests");
+  console.log("✅ Seeded: 1 superadmin, 1 head, 4 managers, 10 employees, 8 leave requests");
 }
 
 main()

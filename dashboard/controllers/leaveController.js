@@ -23,31 +23,30 @@ async function createNotification(userId, message) {
 }
 
 // === GET all leave requests ===
-// === GET leave requests based on role ===
 exports.getAllLeaveRequests = async (req, res) => {
-  const { id: userId, role } = req.user; // Assumes authentication middleware sets req.user
+  const { id: userId, role } = req.user;
 
   try {
     let requests = [];
 
     if (role === "employee") {
-      // 🔒 Employees are not allowed to view leave requests in this route
-      requests = []; // Optional: you could also return a 403 or an empty list
+      // Employees should not access this route
+      return res.status(403).json({ error: "Access denied for employees" });
     } else if (role === "manager") {
-      // ✅ Managers only see leave requests from their employees
-      const employees = await prisma.user.findMany({
-        where: {
-          managerId: userId,
-          role: "employee",
-        },
-        select: { id: true },
-      });
+      console.log(`[MANAGER] ${userId} is requesting leaves`);
+      console.log("🔍 Fetching leaves for manager:", userId);
 
-      const employeeIds = employees.map((emp) => emp.id);
+      requests.forEach((r) => {
+        console.log(
+          `👀 Request from ${r.employeeName} (managerId: ${r.employee.managerId})`
+        );
+      });
 
       requests = await prisma.leaveRequest.findMany({
         where: {
-          employeeId: { in: employeeIds },
+          employee: {
+            managerId: userId,
+          },
         },
         include: {
           employee: true,
@@ -57,7 +56,7 @@ exports.getAllLeaveRequests = async (req, res) => {
         orderBy: { requestedAt: "desc" },
       });
     } else if (role === "head_of_departement") {
-      // ✅ Head of department sees requests from all managers they supervise
+      // ✅ Head sees requests from employees under their supervised managers
       const supervisedManagers = await prisma.user.findMany({
         where: {
           managerId: userId,
@@ -68,20 +67,11 @@ exports.getAllLeaveRequests = async (req, res) => {
 
       const managerIds = supervisedManagers.map((mgr) => mgr.id);
 
-      // Now find all leave requests submitted by these managers’ employees
-      const employees = await prisma.user.findMany({
-        where: {
-          managerId: { in: managerIds },
-          role: "employee",
-        },
-        select: { id: true },
-      });
-
-      const employeeIds = employees.map((emp) => emp.id);
-
       requests = await prisma.leaveRequest.findMany({
         where: {
-          employeeId: { in: employeeIds },
+          employee: {
+            managerId: { in: managerIds },
+          },
         },
         include: {
           employee: true,
@@ -102,7 +92,6 @@ exports.getAllLeaveRequests = async (req, res) => {
 };
 
 // === POST submit a new leave request ===
-// === POST submit a new leave request ===
 exports.submitLeaveRequest = async (req, res) => {
   const { employeeId, employeeName, startDate, endDate, reason } = req.body;
 
@@ -111,7 +100,6 @@ exports.submitLeaveRequest = async (req, res) => {
   }
 
   try {
-    // Fetch employee's role and manager
     const employee = await prisma.user.findUnique({
       where: { id: employeeId },
       select: {
@@ -136,14 +124,12 @@ exports.submitLeaveRequest = async (req, res) => {
         .json({ error: "This user has no manager assigned." });
     }
 
-    // Prevent users from reviewing their own leave
     if (employee.id === employee.managerId) {
       return res
         .status(400)
         .json({ error: "Reviewer cannot be the same as submitter." });
     }
 
-    // Create leave request with reviewer auto-assigned
     const newLeave = await prisma.leaveRequest.create({
       data: {
         employeeId,
@@ -175,36 +161,52 @@ exports.submitLeaveRequest = async (req, res) => {
 
     res.status(201).json(newLeave);
   } catch (error) {
-    console.error("🔴 Submit error:", {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data,
-    });
+    console.error("🔴 Submit error:", error);
+    res.status(500).json({ error: "Failed to submit leave request" });
   }
 };
 
-// === PATCH review a leave request ===
+// === PATCH review a leave request (manager only) ===
 exports.reviewLeaveRequest = async (req, res) => {
   const { id } = req.params;
-  const { status, reviewedById, reviewNotes, reviewedByName } = req.body;
+  const { status, reviewNotes } = req.body;
+  const reviewerId = req.user.id; // Assumes auth middleware sets req.user
 
   if (!["approved", "rejected"].includes(status)) {
     return res.status(400).json({ error: "Invalid status" });
   }
 
   try {
+    const leave = await prisma.leaveRequest.findUnique({
+      where: { id },
+      include: {
+        employee: true,
+      },
+    });
+
+    if (!leave) {
+      return res.status(404).json({ error: "Leave request not found" });
+    }
+
+    // ✅ Only allow manager of the employee to review
+    if (leave.employee.managerId !== reviewerId) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized to review this request" });
+    }
+
     const updated = await prisma.leaveRequest.update({
       where: { id },
       data: {
         status,
-        reviewedById,
-        reviewedByName,
+        reviewedById: reviewerId,
+        reviewedByName: req.user.name,
         reviewNotes,
         reviewedAt: new Date(),
       },
     });
 
-    await logAction(reviewedById, `review_leave_${status}`, id, reviewNotes);
+    await logAction(reviewerId, `review_leave_${status}`, id, reviewNotes);
     await createNotification(
       updated.employeeId,
       `Your leave request was ${status}.`
@@ -248,6 +250,7 @@ exports.uploadAttachment = async (req, res) => {
       leaveRequestId,
       file.originalname
     );
+
     await createNotification(
       leave.employeeId,
       "You uploaded an attachment to your leave request."
@@ -259,6 +262,7 @@ exports.uploadAttachment = async (req, res) => {
     res.status(500).json({ error: "Failed to upload attachment" });
   }
 };
+
 // === GET audit logs (Managers only) ===
 exports.getAuditLogs = async (_req, res) => {
   try {
@@ -267,7 +271,7 @@ exports.getAuditLogs = async (_req, res) => {
         user: true,
       },
       orderBy: {
-        createdAt: "desc", // ✅ Fix here
+        createdAt: "desc",
       },
       take: 100,
     });
