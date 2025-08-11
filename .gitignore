@@ -4,3 +4,9 @@ node_modules
 
 
 reports/
+
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
