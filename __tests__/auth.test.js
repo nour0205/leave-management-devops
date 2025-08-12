@@ -12,6 +12,7 @@ jest.mock("../prisma/prisma", () => ({
 
 jest.mock("jsonwebtoken", () => ({
   sign: jest.fn(() => "mocked-jwt-token"),
+  verify: jest.fn(() => ({ id: "1", role: "employee", name: "Test User" })),
 }));
 
 const { prisma } = require("../prisma/prisma");
@@ -59,7 +60,6 @@ describe("POST /api/auth/login", () => {
   it("should return 400 if email is missing", async () => {
     const res = await request(app).post("/api/auth/login").send({});
 
-    // If you don’t handle this case yet in your controller, I recommend adding a check.
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty("error", "Email is required");
   });

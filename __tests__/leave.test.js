@@ -1,6 +1,16 @@
 const request = require("supertest");
 const app = require("../index");
 
+// ✅ Mock auth to bypass JWT checks in tests
+jest.mock("../dashboard/middleware/authMiddleware", () => ({
+  authenticate: (req, res, next) => {
+    req.user = { id: "test-user", role: "manager" };
+    next();
+  },
+  authorize: () => (req, res, next) => next(),
+}));
+
+// ✅ Mock Prisma client
 jest.mock("../prisma/prisma", () => ({
   prisma: {
     leaveRequest: {
@@ -47,8 +57,6 @@ describe("Leave Request API", () => {
 
     it("should return 400 if required fields are missing", async () => {
       const res = await request(app).post("/api/leaves").send({});
-
-      // ❗ This test assumes you’ll add validation to check for required fields
       expect(res.status).toBe(400);
       expect(res.body).toHaveProperty("error");
     });
@@ -100,12 +108,7 @@ describe("Leave Request API", () => {
           reason: "Vacation",
           status: "approved",
         },
-        {
-          id: "2",
-          employeeName: "Nour",
-          reason: "Medical",
-          status: "pending",
-        },
+        { id: "2", employeeName: "Nour", reason: "Medical", status: "pending" },
       ];
 
       prisma.leaveRequest.findMany.mockResolvedValue(mockData);
