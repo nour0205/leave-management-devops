@@ -31,7 +31,7 @@ describe("Role-Based Access Control", () => {
   });
 
   it("should block access for non-admin user", async () => {
-    jwt.verify.mockReturnValue({ userId: "123", role: "employee" });
+    jwt.verify.mockReturnValue({ id: "123", role: "employee" });
 
     const res = await request(app)
       .get("/api/protected/admin-only")
@@ -42,7 +42,7 @@ describe("Role-Based Access Control", () => {
   });
 
   it("should allow access for admin user", async () => {
-    jwt.verify.mockReturnValue({ userId: "123", role: "admin" });
+    jwt.verify.mockReturnValue({ id: "123", role: "admin" });
 
     const res = await request(app)
       .get("/api/protected/admin-only")

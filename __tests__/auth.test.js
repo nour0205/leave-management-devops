@@ -39,7 +39,7 @@ describe("POST /api/auth/login", () => {
       where: { email: "zied@example.com" },
     });
     expect(jwt.sign).toHaveBeenCalledWith(
-      { userId: "1", role: "employee" },
+      { id: "1", role: "employee" },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
