@@ -4,7 +4,7 @@ const app = require("../index");
 // ✅ Mock auth to bypass JWT checks in tests
 jest.mock("../dashboard/middleware/authMiddleware", () => ({
   authenticate: (req, res, next) => {
-    req.user = { id: "test-user", role: "manager" };
+    req.user = { id: "test-user", role: "manager", name: "Nour" }; // include name for review
     next();
   },
   authorize: () => (req, res, next) => next(),
@@ -17,6 +17,22 @@ jest.mock("../prisma/prisma", () => ({
       create: jest.fn(),
       update: jest.fn(),
       findMany: jest.fn(),
+      findUnique: jest.fn(),
+      delete: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
+      findMany: jest.fn(), // used in getAllLeaveRequests for head_of_departement
+    },
+    auditLog: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+    },
+    notification: {
+      create: jest.fn(),
+    },
+    attachment: {
+      create: jest.fn(),
     },
   },
 }));
@@ -28,16 +44,28 @@ describe("Leave Request API", () => {
     jest.clearAllMocks();
   });
 
+  // ----------------------
+  // POST /api/leaves
+  // ----------------------
   describe("POST /api/leaves", () => {
     it("should create a new leave request", async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: "123",
+        role: "employee",
+        managerId: "mgr-001",
+        manager: { name: "Manager Name" },
+      });
+
       const mockLeave = {
         id: "1",
         employeeId: "123",
         employeeName: "Zied",
-        startDate: "2025-08-01T00:00:00.000Z",
-        endDate: "2025-08-03T00:00:00.000Z",
+        startDate: new Date("2025-08-01").toISOString(),
+        endDate: new Date("2025-08-03").toISOString(),
         reason: "Vacation",
         status: "pending",
+        reviewedById: "mgr-001",
+        reviewedByName: "Manager Name",
       };
 
       prisma.leaveRequest.create.mockResolvedValue(mockLeave);
@@ -62,12 +90,21 @@ describe("Leave Request API", () => {
     });
   });
 
+  // ----------------------
+  // PATCH /api/leaves/:id/review
+  // ----------------------
   describe("PATCH /api/leaves/:id/review", () => {
     it("should review (approve) a leave request", async () => {
+      prisma.leaveRequest.findUnique.mockResolvedValue({
+        id: "1",
+        status: "pending",
+        employee: { managerId: "test-user" }, // reviewer matches
+      });
+
       const mockReviewed = {
         id: "1",
         status: "approved",
-        reviewedById: "admin123",
+        reviewedById: "test-user",
         reviewedByName: "Nour",
         reviewNotes: "Approved for 3 days",
         reviewedAt: new Date().toISOString(),
@@ -77,8 +114,6 @@ describe("Leave Request API", () => {
 
       const res = await request(app).patch("/api/leaves/1/review").send({
         status: "approved",
-        reviewedById: "admin123",
-        reviewedByName: "Nour",
         reviewNotes: "Approved for 3 days",
       });
 
@@ -88,9 +123,14 @@ describe("Leave Request API", () => {
     });
 
     it("should return 400 for invalid status", async () => {
+      prisma.leaveRequest.findUnique.mockResolvedValue({
+        id: "1",
+        status: "pending",
+        employee: { managerId: "test-user" },
+      });
+
       const res = await request(app).patch("/api/leaves/1/review").send({
         status: "maybe",
-        reviewedById: "admin123",
         reviewNotes: "???",
       });
 
@@ -99,9 +139,12 @@ describe("Leave Request API", () => {
     });
   });
 
+  // ----------------------
+  // GET /api/leaves
+  // ----------------------
   describe("GET /api/leaves", () => {
-    it("should return all leave requests", async () => {
-      const mockData = [
+    it("should return all leave requests for a manager", async () => {
+      prisma.leaveRequest.findMany.mockResolvedValue([
         {
           id: "1",
           employeeName: "Zied",
@@ -109,9 +152,7 @@ describe("Leave Request API", () => {
           status: "approved",
         },
         { id: "2", employeeName: "Nour", reason: "Medical", status: "pending" },
-      ];
-
-      prisma.leaveRequest.findMany.mockResolvedValue(mockData);
+      ]);
 
       const res = await request(app).get("/api/leaves");
 
