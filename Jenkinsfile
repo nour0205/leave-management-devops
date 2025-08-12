@@ -185,6 +185,26 @@ docker exec myapppipeline-web-1 npx prisma db seed
 }
 
 
+stage('Deploy to EC2') {
+    steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'ec2-ssh-key', keyFileVariable: 'EC2_KEY')]) {
+            bat """
+                ssh -o StrictHostKeyChecking=no -i $EC2_KEY ubuntu@98.86.248.90 '
+                    cd /home/ubuntu &&
+                    docker-compose pull &&
+                    docker-compose down &&
+                    docker-compose up -d &&
+                    docker exec ubuntu_web_1 npx prisma migrate deploy &&
+                    docker exec ubuntu_web_1 npx prisma db seed
+                '
+            """
+        }
+    }
+}
+
+
+
+
 
 
     }
