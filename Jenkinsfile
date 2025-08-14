@@ -87,70 +87,20 @@ pipeline {
         }
 
         stage('Deploy with Docker Compose') {
+            when {
+                expression { false } // disabled
+            }
             steps {
-                bat 'docker pull nour0205/my_app:latest'
-                bat 'docker-compose down || exit 0'
-                bat 'docker-compose up -d --no-build'
+                echo "🚫 Skipped — EC2 handles deployment now."
             }
         }
 
         stage('Run Prisma Migrate') {
+            when {
+                expression { false } // disabled
+            }
             steps {
-                powershell '''
-Write-Host "🔄 Waiting for PostgreSQL and Web containers to be ready..."
-$maxRetries = 10
-$waitSeconds = 3
-
-$attempt = 1
-while ($attempt -le $maxRetries) {
-    $pgHealth = docker inspect --format="{{.State.Health.Status}}" myapppipeline-postgres-1 2>$null
-    if ($pgHealth -eq "healthy") {
-        Write-Host "✅ PostgreSQL is healthy!"
-        break
-    }
-    Write-Host ("⏳ Postgres Attempt {0} of {1}" -f $attempt, $maxRetries)
-    Start-Sleep -Seconds $waitSeconds
-    $attempt++
-}
-if ($attempt -gt $maxRetries) {
-    Write-Host "❌ PostgreSQL not healthy."
-    exit 1
-}
-
-$attempt = 1
-while ($attempt -le $maxRetries) {
-    $webRunning = docker inspect --format="{{.State.Running}}" myapppipeline-web-1 2>$null
-    if ($webRunning -eq "true") {
-        Write-Host "✅ Web container is running!"
-        break
-    }
-    Write-Host ("⏳ Web Attempt {0} of {1}" -f $attempt, $maxRetries)
-    Start-Sleep -Seconds $waitSeconds
-    $attempt++
-}
-if ($attempt -gt $maxRetries) {
-    Write-Host "❌ Web container did not start."
-    exit 1
-}
-
-try {
-    $webHealth = docker inspect --format="{{.State.Health.Status}}" myapppipeline-web-1 2>$null
-    if ($webHealth -ne "healthy") {
-        Write-Host "❌ Web container unhealthy (status: $webHealth)"
-        exit 1
-    } else {
-        Write-Host "✅ Web container is healthy!"
-    }
-} catch {
-    Write-Host "⚠️ No healthcheck defined for web container."
-}
-
-Write-Host "🚀 Running Prisma Migrate Deploy..."
-docker exec myapppipeline-web-1 npx prisma migrate deploy
-
-Write-Host "🌱 Running Prisma Seed..."
-docker exec myapppipeline-web-1 npx prisma db seed
-'''
+                echo "🚫 Skipped — EC2 handles Prisma migrate + seed."
             }
         }
 
